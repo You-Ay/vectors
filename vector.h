@@ -17,13 +17,13 @@ void vec_print(vec v); // prints vector to terminal, e.g. "( 2.1 , 1.0 , 3.1 )"
 // Operations
 
 vec add(vec v, vec w); // returns the vector v + w
-vec sub(vec v, vec w); // returns the vector v - w
+vec subtract(vec v, vec w); // returns the vector v - w
 
-vec mul(vec v, double a); // scalar multiplication - returns the vector a v
-vec div(vec v, double a); // returns the vector v/a
+vec multiply(vec v, double a); // scalar multiplication - returns the vector a v
+vec divide(vec v, double a); // returns the vector v/a
 
 double dot(vec v, vec w); // inner product, returns the number v . w
-vec out(vec v, vec w); // outer product, returns the vector v x w
+vec cross(vec v, vec w); // outer product, returns the vector v x w
 
 // Norms
 
