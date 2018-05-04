@@ -9,7 +9,7 @@ vec vec_create(double x, double y, double z) {
 }
 
 void vec_print(vec v) {
-	printf("( %lf , %lf , %lf )", v.x, v.y, v.z)" 
+	printf("( %lf , %lf , %lf )", v.x, v.y, v.z); 
 }
 
 // Implementation of further functions
