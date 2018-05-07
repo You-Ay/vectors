@@ -8,8 +8,12 @@ vec vec_create(double x, double y, double z) {
 	return result;
 }
 
-void vec_print(vec v) {
-	printf("( %lf , %lf , %lf )", v.x, v.y, v.z); 
+char * vec_print(vec v, int places) {
+	static char result[100];
+	sprintf(result, "( %0.*f , %0.*f , %0.*f )", places, v.x,
+			places, v.y, places, v.z); 
+	return result;
 }
 
 // Implementation of further functions
+

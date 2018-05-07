@@ -12,7 +12,7 @@ typedef struct {
 } vec;
 
 vec vec_create(double x, double y, double z); // returns the vector (x,y,z)
-void vec_print(vec v); // prints vector to terminal, e.g. "( 2.1 , 1.0 , 3.1 )"
+char * vec_print(vec v, int places); // represents vector as string with 'places' decimal places
 
 // Operations
 
