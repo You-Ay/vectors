@@ -6,29 +6,70 @@
 #include <math.h>
 
 // 3D vector data structure
-
 typedef struct {
 	double x, y, z;
-} vec;
+} vector;
 
-vec vec_create(double x, double y, double z); // returns the vector (x,y,z)
-char * vec_print(vec v, int places); // represents vector as string with 'places' decimal places
+/*
+ * ALTERNATIVE USES OF THE VECTOR STRUCTURE
+ */
 
-// Operations
+// point as position vector
+typedef vector point;
 
-vec add(vec v, vec w); // returns the vector v + w
-vec subtract(vec v, vec w); // returns the vector v - w
+// color as vector RGB (x: red, y: green, z: blue), each from 0 to 1
+typedef vector color;
 
-vec multiply(vec v, double a); // scalar multiplication - returns the vector a v
-vec divide(vec v, double a); // returns the vector v/a
+// material as a percentage of "paper" (x), "mirror" (y), "glass" (z)
+typedef vector material;
 
-double dot(vec v, vec w); // inner product, returns the number v . w
-vec cross(vec v, vec w); // outer product, returns the vector v x w
+/*
+ * ASSIGNING AND PRINTING VECTORS
+ */
 
-// Norms
+// returns the vector (x,y,z)
+vector vector_assign(double x, double y, double z);
 
-double norm2(vec v); // returns the square of the Euclidean norm of v
-double norm(vec v); // returns the Euclidean norm |v|
-vec normalize(vec v); // returns the normalized vector v/|v|
+// returns the vector from point A to point B
+vector connect(point A, point B);
 
-#endif
+// represents vector as string with 'places' decimal places
+char * vector_print(vector v, int places);
+
+/*
+ * OPERATIONS ON VECTORS
+ */
+
+// returns the vector v + w
+vector add(vector v, vector w);
+
+// returns the vector v - w
+vector subtract(vector v, vector w);
+
+// multiplication with scalar - returns the vector a v
+vector multiply(vector v, double a);
+
+// division by scalar - returns the vector v/a
+vector divide(vector v, double a);
+
+// inner product, returns the number v . w
+double dot(vector v, vector w);
+
+// outer product, returns the vector v x w
+vector cross(vector v, vector w);
+
+/*
+ * NORMS AND NORMALIZATION
+ */
+
+// returns the square of the Euclidean norm of v
+double norm2(vector v);
+
+// returns the Euclidean norm |v|
+double norm(vector v);
+
+// returns the normalized vector v/|v|
+vector normalize(vector v);
+
+#endif /* VECTOR_H */
+

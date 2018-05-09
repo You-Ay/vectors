@@ -1,15 +1,23 @@
 #include "vector.h"
 
-vec vec_create(double x, double y, double z) {
-	vec result;
+vector vector_assign(double x, double y, double z) {
+	vector result;
 	result.x = x;
 	result.y = y;
 	result.z = z;
 	return result;
 }
 
-char * vec_print(vec v, int places) {
-	static char result[100];
+vector connect(point A, point B) {
+	vector result;
+	result.x = B.x - A.x;
+	result.y = B.y - A.y;
+	result.z = B.z - A.z;
+	return result;
+}
+
+char * vector_print(vector v, int places) {
+	static char result[255];
 	sprintf(result, "( %0.*f , %0.*f , %0.*f )", places, v.x,
 			places, v.y, places, v.z); 
 	return result;
