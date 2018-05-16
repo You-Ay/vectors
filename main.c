@@ -17,6 +17,8 @@ int main() {
 	printf("v - w = %s\n", vector_print(subtract(v, w), 1));
 	printf("  2 v = %s\n", vector_print(multiply(v, 2), 1));
 	printf("w / 2 = %s\n", vector_print(divide(w, 2), 2));
+	printf("v . w = %f\n", dot(v, w));
+	printf("v x w = %s\n", vector_print(cross(v, w), 1));
 	printf("||v|| = %f\n", norm(v));
 	printf("v_nor = %s\n", vector_print(normalize(v), 3));
 	
