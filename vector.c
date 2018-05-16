@@ -71,6 +71,26 @@ vector divide(vector v, double a) {
 
 }
 
+double dot(vector v, vector w) {
+
+	double result = v.x * w.x + v.y * w.y + v.z * w.z;
+
+	return result;
+
+}
+
+vector cross(vector v, vector w) {
+
+	vector result;
+
+	result.x = v.y * w.z - v.z * w.y;
+	result.y = v.z * w.x - v.x * w.z;
+	result.z = v.x * w.y - v.y * w.x;
+
+	return result;
+
+}
+
 double norm2(vector v) {
 
 	return v.x * v.x + v.y * v.y + v.z * v.z;
