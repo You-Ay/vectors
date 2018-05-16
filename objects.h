@@ -112,12 +112,12 @@ typedef struct {
 
 // return the intersection structure with all applying details filled in
 
-intersection intersect_ray_ray(ray g, ray h);
-intersection intersect_ray_plane(ray g, plane E);
-intersection intersect_ray_sphere(ray g, sphere S);
-intersection intersect_plane_plane(plane E, plane F);
-intersection intersect_plane_sphere(plane E, sphere S);
-intersection intersect_sphere_sphere(sphere S, sphere T);
+intersection intersect_ray_ray(const ray *g, const ray *h);
+intersection intersect_ray_plane(const ray *g, const plane *E);
+intersection intersect_ray_sphere(const ray *g, const sphere *S);
+intersection intersect_plane_plane(const plane *E, const plane *F);
+intersection intersect_plane_sphere(const plane *E, const sphere *S);
+intersection intersect_sphere_sphere(const sphere *S, const sphere *T);
 
 /*
  * DISTANCE CALCULATIONS BETWEEN GEOMETRICAL OBJECTS
@@ -125,14 +125,14 @@ intersection intersect_sphere_sphere(sphere S, sphere T);
 
 // return the (minimal) distance between two objects; zero if intersecting
 
-double distance_point_point(point P, point Q);
-double distance_point_ray(point P, ray g);
-double distance_point_plane(point P, plane E);
-double distance_point_sphere(point P, sphere S);
-double distance_ray_ray(ray g, ray h);
-double distance_ray_plane(ray g, plane E);
-double distance_ray_sphere(ray g, sphere S);
-double distance_sphere_sphere(sphere S, sphere T);
+double distance_point_point(const point *P, const point *Q);
+double distance_point_ray(const point *P, const ray *g);
+double distance_point_plane(const point *P, const plane *E);
+double distance_point_sphere(const point *P, const sphere *S);
+double distance_ray_ray(const ray *g, const ray *h);
+double distance_ray_plane(const ray *g, const plane *E);
+double distance_ray_sphere(const ray *g, const sphere *S);
+double distance_sphere_sphere(const sphere *S, const sphere *T);
 
 #endif /* OBJECTS_H */
 
