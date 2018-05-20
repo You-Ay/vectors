@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "vector.h"
+#include "objects.h"
 
 // Main function: program starts here
 
