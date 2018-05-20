@@ -55,7 +55,7 @@ plane plane_assign_normal(point origin, vector normal) {
 
 		result.direction_1 = vector_assign(normal.y * -1, normal.x, 0);
 
-	} else if(normal.z = 0) {
+	} else if(normal.z != 0) {
 
 		result.direction_1 = vector_assign(0, normal.z * -1, normal.y);
 
@@ -90,7 +90,7 @@ plane plane_assign_cartesian(double a, double b, double c, double d) {
 
 		result.direction_1 = vector_assign(result.normal.y * -1, result.normal.x, 0);
 
-	} else if(result.normal.z = 0) {
+	} else if(result.normal.z != 0) {
 
 		result.direction_1 = vector_assign(0, result.normal.z * -1, result.normal.y);
 
