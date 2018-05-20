@@ -18,7 +18,7 @@ vector connect(point A, point B) {
 
 char * vector_print(vector v, int places) {
 	static char result[255];
-	sprintf(result, "( %0.*f , %0.*f , %0.*f )", places, v.x,
+	sprintf(result, "(%0.*f, %0.*f, %0.*f)", places, v.x,
 			places, v.y, places, v.z); 
 	return result;
 }
