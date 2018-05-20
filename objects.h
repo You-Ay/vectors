@@ -59,7 +59,7 @@ typedef struct {
 ray ray_assign(point origin, vector direction);
 ray ray_assign_points(point A, point B); // A and B are on the ray
 
-// represents ray as string, e.g. "x = ( 1 , 0 , 0 ) + r ( 2 , -1, 1 )",
+// represents ray as string, e.g. "x = (1, 0, 0) + r (2, -1, 1)",
 // numbers with 'places' decimal places
 char * ray_print(ray g, int places);
 
@@ -71,8 +71,8 @@ plane plane_assign_cartesian(double a, double b, double c, double d);
 plane plane_assign_points(point A, point B, point C); // A, B, C on the plane
 
 // fonctions to represent plane as string in different forms:
-// parametric, e.g.: "x = ( 1 , 0 , 0 ) + r ( 2 , -1, 1 ) + s ( 0 , 0, 1 )"
-// normal, e.g.: "[x - ( 1 , 0 , 0 )] . ( -1 , -2 , 0 ) = 0"
+// parametric, e.g.: "x = (1, 0, 0) + r (2, -1, 1) + s (0, 0, 1)"
+// normal, e.g.: "[x - (1, 0, 0)] . (-1, -2, 0) = 0"
 // cartesian, e.g.: "-1 x - 2 y + 0 z = -1"
 // numbers with 'places' decimal places
 char * plane_print_parametric(plane E, int places);
