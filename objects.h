@@ -20,7 +20,6 @@ typedef struct {
 
 	// optical properties
 	color col;
-	material mat;
 } ray;
 
 // plane in different representations
@@ -34,7 +33,7 @@ typedef struct {
 	// normal form: (x - origin) . normal = 0
 	vector normal;
 
-	// cartesian form: a x + b y + c y = d
+	// cartesian form: a x + b y + c z = d
 	double a, b, c, d;
 
 	// optical properties
@@ -89,37 +88,59 @@ char * sphere_print(sphere S, int places);
  * INTERSECTIONS BETWEEN TWO GEOMETRICAL OBJECTS
  */
 
-// generic intersection data structure with all intersection details
+// possible relative positions of two objects
+typedef enum {
+	intersecting, // regular intersection
+	parallel, // for ray/ray, ray/plane, plane/plane
+	skew, // for ray/ray
+	contained, // one object contained in or identical to the other
+	none, // for sphere/* without intersection
+} relative_position;
+
+// intersection data structure for ray/* intersections
 typedef struct {
-	// are the objects intersecting?
-	// 0: no (e.g. strictly parallel planes)
-	// 1: regular intersection
-	// -1: one object is identical to or contained in the other
-	int intersecting;
+	relative_position kind;
 
-	// if intersection occurs in one point P (ray/ray, ray/plane, ray/sphere);
+	// point and value of the ray's parameter r at the intersection
 	point P;
-	double r; // parameter of the ray at intersection point
+	double r;
 
-	// if intersection occurs in one line g (plane/plane);
+	// in case of ray/sphere, there is a 2nd intersection,
+	// (potentially identical to the 1st if ray is tangential)
+	point P_2;
+	double r_2;
+} intersection_pointlike;
+
+// intersection data structure for plane/plane intersections
+typedef struct {
+	relative_position kind;
 	ray g;
+} intersection_linelike;
 
-	// if intersection occurs in one circle (plane/sphere or sphere/sphere);
+// intersection data structure for sphere/sphere and plane/sphere intersections
+typedef struct {
+	relative_position kind;
+
+	// intersection occurs in a circle
 	point center;
 	double radius;
-
-	// intersection angle in radians (ray/ray, ray/plane, plane/plane);
-	double angle;
-} intersection;
+} intersection_circular;
 
 // return the intersection structure with all applying details filled in
 
-intersection intersect_ray_ray(const ray *g, const ray *h);
-intersection intersect_ray_plane(const ray *g, const plane *E);
-intersection intersect_ray_sphere(const ray *g, const sphere *S);
-intersection intersect_plane_plane(const plane *E, const plane *F);
-intersection intersect_plane_sphere(const plane *E, const sphere *S);
-intersection intersect_sphere_sphere(const sphere *S, const sphere *T);
+intersection_pointlike intersect_ray_ray(const ray *g, const ray *h);
+intersection_pointlike intersect_ray_plane(const ray *g, const plane *E);
+intersection_pointlike intersect_ray_sphere(const ray *g, const sphere *S);
+intersection_linelike intersect_plane_plane(const plane *E, const plane *F);
+intersection_circular intersect_plane_sphere(const plane *E, const sphere *S);
+intersection_circular intersect_sphere_sphere(const sphere *S, const sphere *T);
+
+// print the intersection details directly to screen (stdout),
+// e.g.: "Rays parallel.\n"; "Intersection at (1, 0, 4).\n";
+
+void intersection_pointlike_print(const intersection_pointlike *intersection);
+void intersection_linelike_print(const intersection_linelike *intersection);
+void intersection_circular_print(const intersection_circular *intersection);
 
 /*
  * DISTANCE CALCULATIONS BETWEEN GEOMETRICAL OBJECTS
