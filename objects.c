@@ -40,6 +40,7 @@ plane plane_assign_parametric(point origin, vector direction_1, vector direction
 	result.c = result.normal.z;
 	result.d = dot(result.normal, origin);
 
+	return result;
 }
 
 plane plane_assign_normal(point origin, vector normal) {
@@ -72,6 +73,7 @@ plane plane_assign_normal(point origin, vector normal) {
 	result.c = normal.z;
 	result.d = dot(normal, origin);
 
+	return result;
 }
 
 plane plane_assign_cartesian(double a, double b, double c, double d) {
@@ -102,6 +104,7 @@ plane plane_assign_cartesian(double a, double b, double c, double d) {
 
 	result.direction_2 = cross(result.normal, result.direction_1);
 
+	return result;
 }
 
 plane plane_assign_points(point A, point B, point C) {
@@ -136,4 +139,108 @@ sphere sphere_assign(point center, double radius) {
 
 }
 
+collection * collection_alloc(int N_vectors, int N_rays, int N_planes,
+		int N_spheres) {
+
+	collection *bunch = malloc(sizeof(collection));
+
+	bunch->vectors = malloc(N_vectors * sizeof(vector));
+	bunch->N_vectors = N_vectors;
+
+	bunch->rays = malloc(N_rays * sizeof(ray));
+	bunch->N_rays = N_rays;
+
+	bunch->planes = malloc(N_planes * sizeof(plane));
+	bunch->N_planes = N_planes;
+
+	bunch->spheres = malloc(N_spheres * sizeof(sphere));
+	bunch->N_spheres = N_spheres;
+
+	return bunch;
+}
+
+void collection_free(collection *bunch) {
+	free(bunch->vectors);
+	free(bunch->rays);
+	free(bunch->planes);
+	free(bunch->spheres);
+	free(bunch);
+}
+
+void print_gnuplot(char *filename, collection *bunch, double x_min,
+		double x_max, double y_min, double y_max, double z_min, double z_max) {
+
+	FILE *file = fopen(filename, "w");
+	if (file == NULL) {
+		fprintf(stderr, "Error opening file %s.\n", filename);
+		return;
+	}
+
+	// gnuplot settings 
+	
+	fprintf(file, "set nokey\n");
+	fprintf(file, "set parametric\n");
+	fprintf(file, "set hidden3d\n");
+	fprintf(file, "set samples 25\n");
+	fprintf(file, "set isosamples 30, 20\n");
+	fprintf(file, "set xrange [%f:%f]\n", x_min, x_max);
+	fprintf(file, "set yrange [%f:%f]\n", y_min, y_max);
+	fprintf(file, "set zrange [%f:%f]\n", z_min, z_max);
+	fprintf(file, "set multiplot\n");
+
+	int color_counter = 1;
+
+	// plot position vectors
+	
+	for (int i = 0; i < bunch->N_vectors; i++) {
+		fprintf(file, "set arrow %d from 0, 0, 0 to %f, %f, %f\n",
+				i+1, bunch->vectors[i].x, bunch->vectors[i].y,
+				bunch->vectors[i].z);
+	}
+
+	// plot rays
+	
+	for (int i = 0; i < bunch->N_rays; i++) {
+		fprintf(file, "splot %f+%f*u, ",
+				bunch->rays[i].origin.x, bunch->rays[i].direction.x);
+		fprintf(file, "%f+%f*u, ",
+				bunch->rays[i].origin.y, bunch->rays[i].direction.y);
+		fprintf(file, "%f+%f*u ",
+				bunch->rays[i].origin.z, bunch->rays[i].direction.z);
+		fprintf(file, "lc %d\n", color_counter++);
+	}
+
+	// plot planes
+	
+	for (int i = 0; i < bunch->N_planes; i++) {
+		fprintf(file, "splot %f+%f*u+%f*v, ",
+				bunch->planes[i].origin.x, bunch->planes[i].direction_1.x,
+				bunch->planes[i].direction_2.x);
+		fprintf(file, "%f+%f*u+%f*v, ",
+				bunch->planes[i].origin.y, bunch->planes[i].direction_1.y,
+				bunch->planes[i].direction_2.y);
+		fprintf(file, "%f+%f*u+%f*v ",
+				bunch->planes[i].origin.z, bunch->planes[i].direction_1.z,
+				bunch->planes[i].direction_2.z);
+		fprintf(file, "lc %d\n", color_counter++);
+	}
+
+	// plot spheres
+
+	for (int i = 0; i < bunch->N_spheres; i++) {
+		fprintf(file, "splot [-pi:pi][-pi/2:pi/2] %f*(cos(u)*cos(v)+%f), ",
+				bunch->spheres[i].radius, bunch->spheres[i].center.x);
+		fprintf(file, "%f*(sin(u)*cos(v)+%f), ",
+				bunch->spheres[i].radius, bunch->spheres[i].center.y);
+		fprintf(file, "%f*(sin(v)+%f) ",
+				bunch->spheres[i].radius, bunch->spheres[i].center.z);
+		fprintf(file, "lc %d\n", color_counter++);
+	}
+
+	fprintf(file, "unset multiplot\n");
+
+	fclose(file);
+}
+
 // Implementation of the functions declared in the header objects.h
+

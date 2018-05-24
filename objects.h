@@ -85,6 +85,35 @@ sphere sphere_assign(point center, double radius);
 char * sphere_print(sphere S, int places);
 
 /*
+ * PLOTTING A COLLECTION OF OBJECTS BY GNUPLOT
+ */
+
+// data structure for storing a collection of objects
+typedef struct {
+	vector *vectors;
+	int N_vectors;
+
+	ray *rays;
+	int N_rays;
+
+	plane *planes;
+	int N_planes;
+
+	sphere *spheres;
+	int N_spheres;
+} collection;
+
+// allocate and free memory for a collection of objects
+collection * collection_alloc(int N_vectors, int N_rays, int N_planes,
+		int N_spheres);
+void collection_free(collection *bunch);
+
+// create a gnuplot file for printing a collection of objects
+// in gnuplot, type: load 'filename' 
+void print_gnuplot(char *filename, collection *bunch, double x_min,
+		double x_max, double y_min, double y_max, double z_min, double z_max);
+
+/*
  * INTERSECTIONS BETWEEN TWO GEOMETRICAL OBJECTS
  */
 
