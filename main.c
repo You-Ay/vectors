@@ -59,7 +59,7 @@ int main() {
 	// call gnuplot and geogebra print
 
 	print_gnuplot("gnuplot.txt", bunch, -6, 6, -6, 6, -2, 4);
-	print_geogebra("geogebra.txt", bunch); // not yet implemented
+	print_geogebra("geogebra.txt", bunch);
 
 	// free allocated memory
 	
