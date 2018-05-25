@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <math.h>
 #include "vector.h"
 
@@ -108,10 +109,20 @@ collection * collection_alloc(int N_vectors, int N_rays, int N_planes,
 		int N_spheres);
 void collection_free(collection *bunch);
 
+// allocate and fill a collection of objects:
+// The speficiation may read "vvrpss" for creating to vectors, one ray,
+// one plane and two spheres; the same number of corresponding objects
+// has then to be passed.
+collection * collection_assign(char *specification, ...);
+
 // create a gnuplot file for printing a collection of objects
 // in gnuplot, type: load 'filename' 
 void print_gnuplot(char *filename, collection *bunch, double x_min,
 		double x_max, double y_min, double y_max, double z_min, double z_max);
+
+// create a TXT file with a geogebra command to be copied & pasted into
+// the geogebra 3D input line
+void print_geogebra(char *filename, collection *bunch);
 
 /*
  * INTERSECTIONS BETWEEN TWO GEOMETRICAL OBJECTS

@@ -167,6 +167,65 @@ void collection_free(collection *bunch) {
 	free(bunch);
 }
 
+collection * collection_assign(char * specification, ...) {
+
+	// go through specification character by character and remember numbers
+	
+	const char *p;
+
+	int N_vectors = 0;
+	int N_rays = 0;
+	int N_planes = 0;
+	int N_spheres = 0; 
+
+	for (p = specification; *p != '\0'; p++) {
+		switch (*p) {
+		case 'v':
+			N_vectors++;		
+			break;
+		case 'r':
+			N_rays++;		
+			break;
+		case 'p':
+			N_planes++;		
+			break;
+		case 's':
+			N_spheres++;		
+			break;
+		default:
+			fprintf(stderr, "Wrong specification for collection: %s\n",
+					specification);
+			fprintf(stderr, "Only use characters 'v', 'r', 'p', 's' in this ");
+			fprintf(stderr, "order and without whitespaces.\n");
+			break;
+		}
+	}
+
+	// allocate collection structure and fill it
+	
+	collection *bunch = collection_alloc(N_vectors, N_rays, N_planes,
+			N_spheres);
+
+	va_list argp;
+	va_start(argp, specification);
+
+	for (int i = 0; i < N_vectors; i++)
+		bunch->vectors[i] = va_arg(argp, vector);
+
+	for (int i = 0; i < N_rays; i++)
+		bunch->rays[i] = va_arg(argp, ray);
+
+	for (int i = 0; i < N_planes; i++)
+		bunch->planes[i] = va_arg(argp, plane);
+
+	for (int i = 0; i < N_spheres; i++)
+		bunch->spheres[i] = va_arg(argp, sphere);
+
+	va_end(argp);
+
+	return bunch;
+}
+
 void print_gnuplot(char *filename, collection *bunch, double x_min,
 		double x_max, double y_min, double y_max, double z_min, double z_max) {
 
@@ -238,6 +297,66 @@ void print_gnuplot(char *filename, collection *bunch, double x_min,
 	}
 
 	fprintf(file, "unset multiplot\n");
+
+	fclose(file);
+}
+
+void print_geogebra(char *filename, collection *bunch) {
+
+	FILE *file = fopen(filename, "w");
+	if (file == NULL) {
+		fprintf(stderr, "Error opening file %s.\n", filename);
+		return;
+	}
+
+	fprintf(file, "Execute[{");
+
+	int N_total = bunch->N_vectors + bunch->N_rays + bunch->N_planes +
+			bunch->N_spheres;
+	int counter = 0;
+
+	// plot vectors
+	
+	for (int i = 0; i < bunch->N_vectors; i++) {
+		fprintf(file, "\"Vector((0,0,0),(%f,%f,%f))\"",
+				bunch->vectors[i].x, bunch->vectors[i].y, bunch->vectors[i].z);
+		if (++counter < N_total)
+			fprintf(file, ", ");
+	}
+
+	// plot rays
+	
+	for (int i = 0; i < bunch->N_rays; i++) {
+		fprintf(file, "\"Line((%f,%f,%f),Vector((0,0,0),(%f,%f,%f)))\"",
+				bunch->rays[i].origin.x, bunch->rays[i].origin.y,
+				bunch->rays[i].origin.z, bunch->rays[i].direction.x,
+				bunch->rays[i].direction.y, bunch->rays[i].direction.z);
+		if (++counter < N_total)
+			fprintf(file, ", ");
+	}
+	
+	// plot planes
+	
+	for (int i = 0; i < bunch->N_planes; i++) {
+		fprintf(file, "\"PerpendicularPlane((%f,%f,%f),Vector((0,0,0),(%f,%f,%f)))\"",
+				bunch->planes[i].origin.x, bunch->planes[i].origin.y,
+				bunch->planes[i].origin.z, bunch->planes[i].normal.x,
+				bunch->planes[i].normal.y, bunch->planes[i].normal.z);
+		if (++counter < N_total)
+			fprintf(file, ", ");
+	}
+
+	// plot spheres
+	
+	for (int i = 0; i < bunch->N_spheres; i++) {
+		fprintf(file, "\"Sphere((%f,%f,%f),%f)\"",
+				bunch->spheres[i].center.x, bunch->spheres[i].center.y,
+				bunch->spheres[i].center.z, bunch->spheres[i].radius);
+		if (++counter < N_total)
+			fprintf(file, ", ");
+	}
+
+	fprintf(file, "}]\n");
 
 	fclose(file);
 }

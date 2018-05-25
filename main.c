@@ -52,25 +52,17 @@ int main() {
 	double r_2 = 1;
 	sphere S_2 = sphere_assign(c_2, r_2);
 
-	
 	// put everything into a collection structure
-	
-	// allocate for 2 vectors, 1 ray, 1 plane, 2 spheres
-	collection *bunch = collection_alloc(2, 1, 1, 2);
 
-	bunch->vectors[0] = v;
-	bunch->vectors[1] = w;
+	collection *bunch = collection_assign("vvrpss", v, w, g, E, S_1, S_2);
 
-	bunch->rays[0] = g;
+	// call gnuplot and geogebra print
 
-	bunch->planes[0] = E;
-
-	bunch->spheres[0] = S_1;
-	bunch->spheres[1] = S_2;
-
-	print_gnuplot("plot.txt", bunch, -6, 6, -6, 6, -2, 4);
+	print_gnuplot("gnuplot.txt", bunch, -6, 6, -6, 6, -2, 4);
+	print_geogebra("geogebra.txt", bunch); // not yet implemented
 
 	// free allocated memory
+	
 	collection_free(bunch);
 	
 	return 0;
