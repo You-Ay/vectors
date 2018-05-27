@@ -24,6 +24,15 @@ ray ray_assign_points(point A, point B) {
 
 }
 
+char *ray_print(ray g, int places) {
+    static char result[255];
+    sprintf(result, "x = (%0.*f, %0.*f, %0.*f) + r (%0.*f, %0.*f, %0.*f)",
+    places, g.origin.x, places, g.origin.y, places, g.origin.z,
+    places, g.direction.x, places, g.direction.y, places, g.direction.z);
+
+    return result;
+}
+
 plane plane_assign_parametric(point origin, vector direction_1, vector direction_2) {
 
 	plane result;
