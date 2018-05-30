@@ -26,7 +26,7 @@ int main() {
 	printf("v_nor = %s\n", vector_print(normalize(v), 3));
 
 	/*
-	 * GNUPLOT TESTING
+	 * GNUPLOT AND GEOGEBRA TESTING
 	 */
 	
 	// some ray
@@ -64,6 +64,34 @@ int main() {
 	// free allocated memory
 	
 	collection_free(bunch);
+
+	/*
+	 * PRINTING OBJECTS TO STDOUT TESTING
+	 */
+
+	printf("g : %s\n", ray_print(g, 0));
+
+	/*
+	 * CHECKING VECTORS FOR EQUALITY, PARALLELITY, ORTHOGONALITY
+	 */
+
+	vector a = vector_assign(1, 0, 0);
+	vector b = vector_assign(0, 1, 0);
+	vector c = vector_assign(0, -2, 0);
+
+	printf("a = %s and b = %s are ", vector_print(a, 0), vector_print(b, 0));
+
+	if (are_orthogonal(a, b))
+		printf("orthogonal.\n");
+	else
+		printf("not orthogonal.\n");
+	
+	printf("b = %s and c = %s are ", vector_print(b, 0), vector_print(c, 0));
+
+	if (are_orthogonal(b, c))
+		printf("orthogonal.\n");
+	else
+		printf("not orthogonal.\n");
 	
 	return 0;
 }

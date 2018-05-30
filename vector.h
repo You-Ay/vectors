@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdbool.h>
 
 // 3D vector data structure
 typedef struct {
@@ -70,6 +71,21 @@ double norm(vector v);
 
 // returns the normalized vector v/|v|
 vector normalize(vector v);
+
+/*
+ * CHECKS FOR EQUALITY, PARALLELITY, ORTHOGONALITY
+ */
+
+// avoid floating point precision errors:
+// absolute values smaller than epsilon are considered zero
+extern const double epsilon;
+
+// return true if vectors satisfy condition up to a difference of epsilon,
+// false otherwise
+
+bool are_equal(vector v, vector w); 
+bool are_collinear(vector v, vector w);
+bool are_orthogonal(vector v, vector w);
 
 #endif /* VECTOR_H */
 

@@ -7,9 +7,6 @@
 #include <math.h>
 #include "vector.h"
 
-// absolute values smaller than epsilon are considered zero
-const double epsilon;
-
 /*
  * DATA TYPES FOR GEOMETRICAL OBJECTS
  */

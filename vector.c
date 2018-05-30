@@ -1,5 +1,7 @@
 #include "vector.h"
 
+const double epsilon = 1e-6;
+
 vector vector_assign(double x, double y, double z) {
 	vector result;
 	result.x = x;
@@ -126,4 +128,12 @@ vector normalize(vector v) {
 
 }
 
-// Implementation of further functions
+// for the checking functions, we assume that the vector norms are not
+// huge, because this could trick the comparison with epsilon
+// (alternative: normalize vectors before checks, but doing this every
+// time is numerically expensive.
+
+bool are_orthogonal(vector v, vector w) {
+	return (fabs(dot(v, w)) < epsilon);
+}
+

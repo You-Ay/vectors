@@ -96,6 +96,15 @@ plane plane_assign_cartesian(double a, double b, double c, double d) {
 
 	result.normal = vector_assign(a, b, c);
 
+	if (result.a != 0)
+		result.origin = vector_assign(d/a, 0, 0);
+	else if (result.b != 0)
+		result.origin = vector_assign(0, d/b, 0);
+	else if (result.c != 0)
+		result.origin = vector_assign(0, 0, d/c);
+	else
+		fprintf(stderr, "Error - unable to assign plane with normal zero vector!");
+
 	// (Probably) turns the normal vector by 90 degrees, (probably) works somehow
 	if(result.normal.x != 0 || result.normal.y != 0) {
 
@@ -112,6 +121,7 @@ plane plane_assign_cartesian(double a, double b, double c, double d) {
 	}
 
 	result.direction_2 = cross(result.normal, result.direction_1);
+
 
 	return result;
 }
