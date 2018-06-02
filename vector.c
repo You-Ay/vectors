@@ -133,6 +133,14 @@ vector normalize(vector v) {
 // (alternative: normalize vectors before checks, but doing this every
 // time is numerically expensive.
 
+bool are_equal(vector v, vector w) {
+	return (norm2(subtract(v, w)) < epsilon*epsilon);
+}
+
+bool are_collinear(vector v, vector w) {
+	return (norm2(cross(v, w)) < epsilon*epsilon);
+}
+
 bool are_orthogonal(vector v, vector w) {
 	return (fabs(dot(v, w)) < epsilon);
 }

@@ -78,20 +78,31 @@ int main() {
 	vector a = vector_assign(1, 0, 0);
 	vector b = vector_assign(0, 1, 0);
 	vector c = vector_assign(0, -2, 0);
+	vector d = vector_assign(0.0, -2.0, 0.0);
 
-	printf("a = %s and b = %s are ", vector_print(a, 0), vector_print(b, 0));
+	printf("a = %s ", vector_print(a, 0));
+	printf("and b = %s ", vector_print(b, 0));
 
 	if (are_orthogonal(a, b))
-		printf("orthogonal.\n");
+		printf("are orthogonal.\n");
 	else
-		printf("not orthogonal.\n");
+		printf("are not orthogonal.\n");
 	
-	printf("b = %s and c = %s are ", vector_print(b, 0), vector_print(c, 0));
+	printf("b = %s ", vector_print(b, 0));
+	printf("and c = %s ", vector_print(c, 0));
 
-	if (are_orthogonal(b, c))
-		printf("orthogonal.\n");
+	if (are_collinear(b, c))
+		printf("are collinear.\n");
 	else
-		printf("not orthogonal.\n");
+		printf("are not collinear.\n");
+	
+	printf("c = %s ", vector_print(c, 0));
+	printf("and d = %s ", vector_print(d, 0));
+
+	if (are_equal(c, d))
+		printf("are equal.\n");
+	else
+		printf("are not equal.\n");
 	
 	return 0;
 }
