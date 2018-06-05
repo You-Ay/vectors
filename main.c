@@ -37,9 +37,9 @@ int main() {
 	
 	// some plane 
 	
-	vector a_E = vector_assign(0, 0, -1);
-	vector u_E = vector_assign(1, 0, 0);
-	vector v_E = vector_assign(0, 1, 0);
+	vector a_E = vector_assign(2, 2, 0);
+	vector u_E = vector_assign(1, 1, -1);
+	vector v_E = vector_assign(5, -1, -1);
 	plane E = plane_assign_parametric(a_E, u_E, v_E);
 
 	// some spheres
