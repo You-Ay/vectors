@@ -168,7 +168,7 @@ char *plane_print_normal (plane E, int places) {
 
 char *plane_print_cartesian (plane E, int places) {
     static char result[255];
-    sprintf(result, "%0.*f x + %0.*f y + %0.*f z = %0.*f ",
+    sprintf(result, "%0.*f x %+0.*f y %+0.*f z = %0.*f ",
     places, E.a, places, E.b, places, E.c, places, E.d);
 
     return result;
