@@ -70,7 +70,11 @@ int main() {
 	 */
 
 	printf("g : %s\n", ray_print(g, 0));
-
+	printf("E : %s\n", plane_print_parametric(E, 0));
+	printf("E : %s\n", plane_print_normal(E, 0));
+	printf("E : %s\n", plane_print_cartesian(E, 0));
+	printf("S : %s\n", sphere_print(S_1, 0));
+	
 	/*
 	 * CHECKING VECTORS FOR EQUALITY, PARALLELITY, ORTHOGONALITY
 	 */
