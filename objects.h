@@ -128,10 +128,10 @@ void print_geogebra(char *filename, collection *bunch);
 // possible relative positions of two objects
 typedef enum {
 	intersecting, // regular intersection
-	parallel, // for ray/ray, ray/plane, plane/plane
+	parallel, // for ray/ray, ray/plane
 	skew, // for ray/ray
 	contained, // one object contained in or identical to the other
-	none, // for sphere/* without intersection
+	none, // for ray/sphere without intersection
 } relative_position;
 
 // intersection data structure for ray/* intersections
@@ -146,53 +146,18 @@ typedef struct {
 	// (potentially identical to the 1st if ray is tangential)
 	point P_2;
 	double r_2;
-} intersection_pointlike;
-
-// intersection data structure for plane/plane intersections
-typedef struct {
-	relative_position kind;
-	ray g;
-} intersection_linelike;
-
-// intersection data structure for sphere/sphere and plane/sphere intersections
-typedef struct {
-	relative_position kind;
-
-	// intersection occurs in a circle
-	point center;
-	double radius;
-} intersection_circular;
+} intersection;
 
 // return the intersection structure with all applying details filled in
 
-intersection_pointlike intersect_ray_ray(const ray *g, const ray *h);
-intersection_pointlike intersect_ray_plane(const ray *g, const plane *E);
-intersection_pointlike intersect_ray_sphere(const ray *g, const sphere *S);
-intersection_linelike intersect_plane_plane(const plane *E, const plane *F);
-intersection_circular intersect_plane_sphere(const plane *E, const sphere *S);
-intersection_circular intersect_sphere_sphere(const sphere *S, const sphere *T);
+intersection intersect_ray_ray(const ray *g, const ray *h);
+intersection intersect_ray_plane(const ray *g, const plane *E);
+intersection intersect_ray_sphere(const ray *g, const sphere *S);
 
 // print the intersection details directly to screen (stdout),
 // e.g.: "Rays parallel.\n"; "Intersection at (1, 0, 4).\n";
 
-void intersection_pointlike_print(const intersection_pointlike *intersection);
-void intersection_linelike_print(const intersection_linelike *intersection);
-void intersection_circular_print(const intersection_circular *intersection);
-
-/*
- * DISTANCE CALCULATIONS BETWEEN GEOMETRICAL OBJECTS
- */
-
-// return the (minimal) distance between two objects; zero if intersecting
-
-double distance_point_point(const point *P, const point *Q);
-double distance_point_ray(const point *P, const ray *g);
-double distance_point_plane(const point *P, const plane *E);
-double distance_point_sphere(const point *P, const sphere *S);
-double distance_ray_ray(const ray *g, const ray *h);
-double distance_ray_plane(const ray *g, const plane *E);
-double distance_ray_sphere(const ray *g, const sphere *S);
-double distance_sphere_sphere(const sphere *S, const sphere *T);
+void intersection_print(const intersection *intersection);
 
 #endif /* OBJECTS_H */
 
