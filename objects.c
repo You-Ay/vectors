@@ -146,6 +146,34 @@ plane plane_assign_points(point A, point B, point C) {
 
 }
 
+char *plane_print_parametric (plane E, int places) {
+    static char result[255];
+    sprintf(result, "x = (%0.*f, %0.*f, %0.*f) + r (%0.*f, %0.*f, %0.*f)+ s (%0.*f, %0.*f, %0.*f)",
+    places, E.origin.x, places, E.origin.y, places, E.origin.z,
+    places, E.direction_1.x, places, E.direction_1.y, places, E.direction_1.z,
+    places, E.direction_2.x, places, E.direction_2.y, places, E.direction_2.z);
+   
+    return result;
+}
+
+
+char *plane_print_normal (plane E, int places) {
+    static char result[255];
+    sprintf(result, "0 = (x-(%0.*f, %0.*f, %0.*f)) . (%0.*f, %0.*f, %0.*f)",
+    places, E.origin.x, places, E.origin.y, places, E.origin.z,
+    places, E.normal.x, places, E.normal.y, places, E.normal.z);
+   
+    return result;
+}
+
+char *plane_print_cartesian (plane E, int places) {
+    static char result[255];
+    sprintf(result, "%0.*f x + %0.*f y + %0.*f z = %0.*f ",
+    places, E.a, places, E.b, places, E.c, places, E.d);
+
+    return result;
+}
+
 sphere sphere_assign(point center, double radius) {
 
 	sphere result;
@@ -156,6 +184,15 @@ sphere sphere_assign(point center, double radius) {
 
 	return result;
 
+}
+
+char *sphere_print(sphere S, int places) {
+    static char result[255];
+    sprintf(result, "(x %+0.*f)^2 + (y %+0.*f)^2 + (z %+0.*f)^2= (%0.*f) ^2",
+    places, -1 * S.center.x, places, -1 * S.center.y, places, -1 * S.center.z,
+    places, S.radius);
+
+    return result;
 }
 
 collection * collection_alloc(int N_vectors, int N_rays, int N_planes,
