@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <math.h>
 #include "vector.h"
 
@@ -37,6 +38,7 @@ typedef struct {
 	// optical properties
 	color col;
 	material mat;
+	bool is_light_source;
 } plane;
 
 // sphere: (x - center.x)^2 + (y - center.y)^2 + (z - center.z)^2 = radius^2
@@ -47,6 +49,7 @@ typedef struct {
 	// optical properties
 	color col;
 	material mat;
+	bool is_light_source;
 } sphere;
 
 /*

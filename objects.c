@@ -49,6 +49,8 @@ plane plane_assign_parametric(point origin, vector direction_1, vector direction
 	result.c = result.normal.z;
 	result.d = dot(result.normal, origin);
 
+	result.is_light_source = false;
+
 	return result;
 }
 
@@ -81,6 +83,8 @@ plane plane_assign_normal(point origin, vector normal) {
 	result.b = normal.y;
 	result.c = normal.z;
 	result.d = dot(normal, origin);
+
+	result.is_light_source = false;
 
 	return result;
 }
@@ -122,6 +126,7 @@ plane plane_assign_cartesian(double a, double b, double c, double d) {
 
 	result.direction_2 = cross(result.normal, result.direction_1);
 
+	result.is_light_source = false;
 
 	return result;
 }
@@ -141,6 +146,8 @@ plane plane_assign_points(point A, point B, point C) {
 	result.b = result.normal.y;
 	result.c = result.normal.z;
 	result.d = dot(result.normal, result.origin);
+
+	result.is_light_source = false;
 
 	return result;
 
@@ -181,6 +188,8 @@ sphere sphere_assign(point center, double radius) {
 	result.center = center;
 
 	result.radius = radius;
+
+	result.is_light_source = false;
 
 	return result;
 
