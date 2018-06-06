@@ -1,3 +1,6 @@
+#ifndef OPTICS_H
+#define OPTICS_H
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -126,4 +129,6 @@ trace_status trace(ray *g, const collection *scene, int N_interactions,
 // a light source or has become invalid.
 void render(int samples, int max_interactions, camera *cam, screen *scr,
 		collection *scene);
+
+#endif /* OPTICS_H */
 
