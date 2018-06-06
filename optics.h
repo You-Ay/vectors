@@ -68,7 +68,7 @@ void screen_free(screen *scr);
 
 // print colors stored in the screen to an image file,
 // in portable pixmap file format (PPM)
-void screen_print_ppm(const screen *scr, char *filename);
+void screen_print_ppm(char *filename, const screen *scr);
 
 // map a color value between 0.0 and 1.0 (R, G, or B) to
 // a 0..255 integer interval, as expected by standard graphics formats;
@@ -90,7 +90,6 @@ typedef struct {
 
 	// at a certain distance from the camera, and perpendicular to it,
 	// there is a virtual screen
-	
 	double screen_distance;
 } camera;
 
@@ -120,15 +119,15 @@ trace_status trace(ray *g, const collection *scene, int N_interactions,
 		int max_interactions);
 
 // render an image:
-// - 'samples' gives the number of rays launched at each subpixel,
+// - 'cam' and 'scr' define the camera and screen objects,
+// - 'scene' is the collection of all objects,
 // - 'max_interactions' is the maximum number of interactions a ray is allowed
 //   to have unless it hits a light source,
-// - 'cam' and 'scr' define the camera and screen objects,
-// - 'scene' is the collection of all objects
+// - 'samples' gives the number of rays launched at each subpixel.
 // The renderer traces each ray until it has become either illuminated by
 // a light source or has become invalid.
-void render(int samples, int max_interactions, camera *cam, screen *scr,
-		collection *scene);
+void render(camera *cam, screen *scr, collection *scene, int max_interactions,
+		int samples);
 
 #endif /* OPTICS_H */
 
