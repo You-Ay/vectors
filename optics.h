@@ -67,6 +67,11 @@ void screen_free(screen *scr);
 // in portable pixmap file format (PPM)
 void screen_print_ppm(const screen *scr, char *filename);
 
+// map a color value between 0.0 and 1.0 (R, G, or B) to
+// a 0..255 integer interval, as expected by standard graphics formats;
+// use a standard gamma value of 1 / 2.2
+int color2int(double col);
+
 /*
  * CAMERA DATA STRUCTURE
  */
