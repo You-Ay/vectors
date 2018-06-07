@@ -444,7 +444,7 @@ intersection_pointlike intersect_ray_plane(const ray *g, const plane *E) {
 
 	if(are_orthogonal(g->direction, E->normal)) {
 
-		if(are_orthogonal(subtract(E->origin, g->direction), E->normal)) {
+		if(are_orthogonal(subtract(E->origin, g->origin), E->normal)) {
 
 			result.kind = contained;
 
