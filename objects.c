@@ -49,8 +49,6 @@ plane plane_assign_parametric(point origin, vector direction_1, vector direction
 	result.c = result.normal.z;
 	result.d = dot(result.normal, origin);
 
-	result.is_light_source = false;
-
 	return result;
 }
 
@@ -83,8 +81,6 @@ plane plane_assign_normal(point origin, vector normal) {
 	result.b = normal.y;
 	result.c = normal.z;
 	result.d = dot(normal, origin);
-
-	result.is_light_source = false;
 
 	return result;
 }
@@ -126,7 +122,6 @@ plane plane_assign_cartesian(double a, double b, double c, double d) {
 
 	result.direction_2 = cross(result.normal, result.direction_1);
 
-	result.is_light_source = false;
 
 	return result;
 }
@@ -147,38 +142,8 @@ plane plane_assign_points(point A, point B, point C) {
 	result.c = result.normal.z;
 	result.d = dot(result.normal, result.origin);
 
-	result.is_light_source = false;
-
 	return result;
 
-}
-
-char *plane_print_parametric (plane E, int places) {
-    static char result[255];
-    sprintf(result, "x = (%0.*f, %0.*f, %0.*f) + r (%0.*f, %0.*f, %0.*f)+ s (%0.*f, %0.*f, %0.*f)",
-    places, E.origin.x, places, E.origin.y, places, E.origin.z,
-    places, E.direction_1.x, places, E.direction_1.y, places, E.direction_1.z,
-    places, E.direction_2.x, places, E.direction_2.y, places, E.direction_2.z);
-   
-    return result;
-}
-
-
-char *plane_print_normal (plane E, int places) {
-    static char result[255];
-    sprintf(result, "0 = (x-(%0.*f, %0.*f, %0.*f)) . (%0.*f, %0.*f, %0.*f)",
-    places, E.origin.x, places, E.origin.y, places, E.origin.z,
-    places, E.normal.x, places, E.normal.y, places, E.normal.z);
-   
-    return result;
-}
-
-char *plane_print_cartesian (plane E, int places) {
-    static char result[255];
-    sprintf(result, "%0.*f x %+0.*f y %+0.*f z = %0.*f ",
-    places, E.a, places, E.b, places, E.c, places, E.d);
-
-    return result;
 }
 
 sphere sphere_assign(point center, double radius) {
@@ -189,19 +154,8 @@ sphere sphere_assign(point center, double radius) {
 
 	result.radius = radius;
 
-	result.is_light_source = false;
-
 	return result;
 
-}
-
-char *sphere_print(sphere S, int places) {
-    static char result[255];
-    sprintf(result, "(x %+0.*f)^2 + (y %+0.*f)^2 + (z %+0.*f)^2= (%0.*f) ^2",
-    places, -1 * S.center.x, places, -1 * S.center.y, places, -1 * S.center.z,
-    places, S.radius);
-
-    return result;
 }
 
 collection * collection_alloc(int N_vectors, int N_rays, int N_planes,
@@ -424,6 +378,97 @@ void print_geogebra(char *filename, collection *bunch) {
 	fprintf(file, "}]\n");
 
 	fclose(file);
+}
+
+intersection_pointlike intersect_ray_ray(const ray *g, const ray *h) {
+
+	intersection_pointlike result;
+
+	//checks for collinearity of the direction vectors
+	if(are_collinear(g->direction, h->direction)) {
+
+		/* If the rays are identical, both origin vectors point on the same ray.
+		 * This means that their difference must be collinear to the direction vector */
+		if(are_collinear(g->direction, subtract(g->origin, h->origin))){
+
+			result.kind = contained;
+
+		} else {
+
+			result.kind = parallel;
+
+		}
+
+	} else {
+
+		plane hplane = plane_assign_parametric(h->origin, h->direction, cross(g->direction, h->direction));
+
+		// rcoeff * r = r_othervalue
+		double rcoeff = hplane.a * g->direction.x + hplane.b * g->direction.y + hplane.c * g->direction.z;
+		double r_othervalue = hplane.d - (hplane.a * g->origin.x + hplane.b * g->origin.y + hplane.c * g->origin.z); // srsly how should I name this variable?
+
+		double r = r_othervalue / rcoeff;
+		// the intersection between the ray g and the plane hplane derived from the ray h
+		point planeintersection = vector_assign(g->origin.x + r * g->direction.x, g->origin.y + r * g->direction.y, g->origin.z + r * g->direction.z);
+
+		// Don't know how to name these variables either
+		double s_othervalue1 = planeintersection.x - h->origin.x;
+		double s_othervalue2 = planeintersection.y - h->origin.y;
+		double s_othervalue3 = planeintersection.z - h->origin.z;
+
+		double s1 = h->direction.x / s_othervalue1;
+		double s2 = h->direction.y / s_othervalue2;
+		double s3 = h->direction.z / s_othervalue3;
+
+		if(s1 == s2 && s1 == s3) {
+
+			result.kind = intersecting;
+			result.P = planeintersection;
+			result.r = r;
+
+		} else {
+
+			result.kind = skew;
+
+		}
+
+	}
+
+	return result;
+
+}
+
+intersection_pointlike intersect_ray_plane(const ray *g, const plane *E) {
+
+	intersection_pointlike result;
+
+	if(are_orthogonal(g->direction, E->normal)) {
+
+		if(are_orthogonal(subtract(E->origin, g->direction), E->normal)) {
+
+			result.kind = contained;
+
+		} else {
+
+			result.kind = parallel;
+
+		}
+
+	} else {
+
+		result.kind = intersecting;
+
+		// rcoeff * r = r_othervalue
+		double rcoeff = E->a * g->direction.x + E->b * g->direction.y + E->c * g->direction.z;
+		double r_othervalue = E->d - (E->a * g->origin.x + E->b * g->origin.y + E->c * g->origin.z); // srsly how should I name this variable?
+
+		result.r = r_othervalue / rcoeff;
+		result.P = vector_assign(g->origin.x + result.r * g->direction.x, g->origin.y + result.r * g->direction.y, g->origin.z + result.r * g->direction.z);
+
+	}
+
+	return result;
+
 }
 
 // Implementation of the functions declared in the header objects.h
