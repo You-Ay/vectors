@@ -515,5 +515,37 @@ intersection intersect_ray_plane(const ray *g, const plane *E) {
 
 }
 
+intersection intersect_ray_sphere(const ray *g, const sphere *S) {
+
+	intersection result;
+
+	vector d = subtract(g->origin, S->center);
+
+	double a = dot(g->direction, g->direction);
+	double b = 2 * dot(g->direction, d);
+	double c = dot(d, d) - S->radius;
+
+	double discrimant = b * b - 4 * a * c;
+
+	if(discrimant < 0) {
+
+		result.kind = none;
+
+	} else {
+
+		result.kind = intersecting;
+
+		result.r = (-b - sqrt(discrimant)) / 2 * a;
+		result.r_2 = (-b + sqrt(discrimant)) / 2 * a;
+
+		result.P = add(g->origin, multiply(g->direction, result.r));
+		result.P_2 = add(g->origin, multiply(g->direction, result.r_2));
+
+	}
+
+	return result;
+
+}
+
 // Implementation of the functions declared in the header objects.h
 
