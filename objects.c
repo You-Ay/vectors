@@ -446,27 +446,24 @@ intersection intersect_ray_ray(const ray *g, const ray *h) {
 		}
 
 	} else {
+		// create auxiliary plane containing h and being orthogonal to g
+		vector direction_2 = cross(g->direction, h->direction);
+		plane hplane = plane_assign_parametric(h->origin, h->direction, direction_2);
 
-		plane hplane = plane_assign_parametric(h->origin, h->direction, cross(g->direction, h->direction));
+		// finding parameter value of g at intersection with the auxiliary plane
+		// coeff * r = rhs, "right-hand side"
+		double coeff = dot(hplane.normal, g->direction);
+		double rhs = hplane.d - dot(hplane.normal, g->origin);
+		double r = rhs / coeff;
 
-		// rcoeff * r = r_othervalue
-		double rcoeff = hplane.a * g->direction.x + hplane.b * g->direction.y + hplane.c * g->direction.z;
-		double r_othervalue = hplane.d - (hplane.a * g->origin.x + hplane.b * g->origin.y + hplane.c * g->origin.z); // srsly how should I name this variable?
-
-		double r = r_othervalue / rcoeff;
 		// the intersection between the ray g and the plane hplane derived from the ray h
-		point planeintersection = vector_assign(g->origin.x + r * g->direction.x, g->origin.y + r * g->direction.y, g->origin.z + r * g->direction.z);
+		point planeintersection = add(g->origin, multiply(g->direction, r));
+			
+		// check if intersection lies on the ray h, i.e.
+		// if the difference between it and h's origin is parallel to h's direction
+		vector diff = connect(h->origin, planeintersection);
 
-		// Don't know how to name these variables either
-		double s_othervalue1 = planeintersection.x - h->origin.x;
-		double s_othervalue2 = planeintersection.y - h->origin.y;
-		double s_othervalue3 = planeintersection.z - h->origin.z;
-
-		double s1 = h->direction.x / s_othervalue1;
-		double s2 = h->direction.y / s_othervalue2;
-		double s3 = h->direction.z / s_othervalue3;
-
-		if(s1 == s2 && s1 == s3) {
+		if(are_collinear(diff, h->direction)) {
 
 			result.kind = intersecting;
 			result.P = planeintersection;
@@ -504,12 +501,13 @@ intersection intersect_ray_plane(const ray *g, const plane *E) {
 
 		result.kind = intersecting;
 
-		// rcoeff * r = r_othervalue
-		double rcoeff = E->a * g->direction.x + E->b * g->direction.y + E->c * g->direction.z;
-		double r_othervalue = E->d - (E->a * g->origin.x + E->b * g->origin.y + E->c * g->origin.z); // srsly how should I name this variable?
+		// finding parameter value of g at intersection with the auxiliary plane
+		// coeff * r = rhs, "right-hand side"
+		double coeff = dot(E->normal, g->direction);
+		double rhs = E->d - dot(E->normal, g->origin);; // srsly how should I name this variable?
+		result.r = rhs / coeff;
 
-		result.r = r_othervalue / rcoeff;
-		result.P = vector_assign(g->origin.x + result.r * g->direction.x, g->origin.y + result.r * g->direction.y, g->origin.z + result.r * g->direction.z);
+		result.P = add(g->origin, multiply(g->direction, result.r));
 
 	}
 
