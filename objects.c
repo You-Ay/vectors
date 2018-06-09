@@ -527,7 +527,7 @@ intersection intersect_ray_sphere(const ray *g, const sphere *S) {
 
 	double discrimant = b * b - 4 * a * c;
 
-	if(discrimant < 0) {
+	if(discrimant < 0.0) {
 
 		result.kind = none;
 
@@ -535,8 +535,8 @@ intersection intersect_ray_sphere(const ray *g, const sphere *S) {
 
 		result.kind = intersecting;
 
-		result.r = (-b - sqrt(discrimant)) / 2 * a;
-		result.r_2 = (-b + sqrt(discrimant)) / 2 * a;
+		result.r = (-b - sqrt(discrimant)) / (2 * a);
+		result.r_2 = (-b + sqrt(discrimant)) / (2 * a);
 
 		result.P = add(g->origin, multiply(g->direction, result.r));
 		result.P_2 = add(g->origin, multiply(g->direction, result.r_2));
