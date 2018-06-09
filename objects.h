@@ -160,7 +160,9 @@ intersection intersect_ray_sphere(const ray *g, const sphere *S);
 // print the intersection details directly to screen (stdout),
 // e.g.: "Rays parallel.\n"; "Intersection at (1, 0, 4).\n";
 
-void intersection_print(const intersection *I);
+void intersection_print_ray_ray(const intersection *I);
+void intersection_print_ray_plane(const intersection *I);
+void intersection_print_ray_sphere(const intersection *I);
 
 #endif /* OBJECTS_H */
 
