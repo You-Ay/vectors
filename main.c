@@ -107,7 +107,23 @@ int main() {
 		printf("are equal.\n");
 	else
 		printf("are not equal.\n");
+
+	/*
+	 * INTERSECTION TESTING
+	 */
+
+	vector u_h = vector_assign(0, 0, 0);
+	vector v_h = vector_assign(1, 0, 0);
+	ray h = ray_assign(u_h, v_h);
+
+	intersection I_gh = intersect_ray_ray(&g, &h);
+	intersection I_gE = intersect_ray_plane(&g, &E);
+	intersection I_gS = intersect_ray_sphere(&g, &S_1);
 	
+	intersection_print_ray_ray(&I_gh, 1);
+	intersection_print_ray_plane(&I_gE, 1);
+	intersection_print_ray_sphere(&I_gS, 1);
+
 	return 0;
 }
 
