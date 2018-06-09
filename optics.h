@@ -96,6 +96,12 @@ typedef struct {
 camera camera_assign(point origin, vector direction, double angle,
 		double screen_distance);
 
+// return the location of a pixel on the virtual screen:
+// 'pixel' is the pixel number (from 0 to scr->pixels_width*scr->pixels_height)
+// 'subpixel' is one of the four subpixels of each pixel
+point pixel_position(const camera *cam, const screen *scr, long pixel,
+		int subpixel);
+
 /*
  * RENDERING BY RAY TRACING
  */
