@@ -84,7 +84,7 @@ typedef struct {
 
 	point origin;
 	vector direction; // direction into which the camera looks
-	vector right; // the direction to the right
+	vector up; // the direction to the right
 
 	// at a certain distance from the camera, and perpendicular to it,
 	// there is a virtual screen
@@ -97,7 +97,7 @@ typedef struct {
 	vector e_1, e_2, e_3;
 } camera;
 
-camera camera_assign(point origin, vector direction, vector right,
+camera camera_assign(point origin, vector direction, vector up,
 		double screen_distance);
 
 // return the location of a pixel on the virtual screen:
