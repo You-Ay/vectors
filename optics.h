@@ -83,17 +83,21 @@ typedef struct {
 	// the camera is located at a point 'origin' and looks into 'direction'
 
 	point origin;
-	vector direction; // should be normalized
-
-	// the camera may be rotated against the xy-plane by an angle
-	double angle;
+	vector direction; // direction into which the camera looks
+	vector right; // the direction to the right
 
 	// at a certain distance from the camera, and perpendicular to it,
 	// there is a virtual screen
 	double screen_distance;
+
+	// orthonormal basis for the camera:
+	// e_1: direction of the camera,
+	// e_2: to the right,
+	// e_3: down
+	vector e_1, e_2, e_3;
 } camera;
 
-camera camera_assign(point origin, vector direction, double angle,
+camera camera_assign(point origin, vector direction, vector right,
 		double screen_distance);
 
 // return the location of a pixel on the virtual screen:
