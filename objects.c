@@ -547,5 +547,46 @@ intersection intersect_ray_sphere(const ray *g, const sphere *S) {
 
 }
 
+void intersection_print_ray_ray(const intersection *I, int places) {
+
+	switch(I->kind) {
+
+		case 0: printf("Intersection at %s, ray parameter r = %f\n", vector_print(I->P, places), I->r); break;
+		case 1: printf("Parallel, no intersection\n"); break;
+		case 2: printf("Skew, no intersection\n"); break;
+		case 3: printf("Contained\n"); break;
+
+	}
+
+}
+
+void intersection_print_ray_plane(const intersection *I, int places) {
+
+	switch(I->kind) {
+
+		case 0: printf("Intersection at %s, ray parameter r = &f\n", vector_print(I->P, places), I->r); break;
+		case 1: printf("Parallel, no intersection\n"); break;
+		case 3: printf("Contained\n"); break;
+
+	}
+
+}
+
+void intersection_print_ray_sphere(const intersection *I, int places) {
+
+	switch(I->kind) {
+
+		case 0: if(I->r == I->r_2) {
+				printf("Intersection at %s, ray parameter r = %i\n", vector_print(I->P, places), I->r);
+			} else {
+				printf("Two intersections at %s and ",vector_print(I->P, places));
+				printf("%s, ray parameters r = %f, r_2 = %f\n", vector_print(I->P_2, places), I->r, I->r_2);
+			} break;
+		case 4: printf("No intersection\n");
+
+	}
+
+}
+
 // Implementation of the functions declared in the header objects.h
 
