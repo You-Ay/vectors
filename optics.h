@@ -84,7 +84,7 @@ typedef struct {
 
 	point origin;
 	vector direction; // direction into which the camera looks
-	vector up; // the direction to the right
+	vector up; // to the top, orthogonal to 'direction'
 
 	// at a certain distance from the camera, and perpendicular to it,
 	// there is a virtual screen
