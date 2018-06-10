@@ -9,7 +9,7 @@ void reflect(ray *g, vector normal, point P) {
 	vector udirection = normalize(g->direction);
 	double parameter = 2 * dot(unormal, udirection);
 
-	g->direction = subtract(multiply(unormal, parameter), udirection);
+	g->direction = subtract(udirection, multiply(unormal, parameter));
 
 }
 
