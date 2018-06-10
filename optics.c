@@ -1,6 +1,6 @@
 #include "optics.h"
 
-void absorb(ray *g, color col);
+void absorb(ray *g, color col) {
 
 	g->col.x = col.x * g->col.x;
 	g->col.y = col.y * g->col.y;
