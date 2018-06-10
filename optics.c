@@ -2,9 +2,9 @@
 
 void absorb(ray *g, color col);
 
-	g->col.x = col.x * g->col.x
-	g->col.y = col.y * g->col.y
-	g->col.z = col.z * g->col.z
+	g->col.x = col.x * g->col.x;
+	g->col.y = col.y * g->col.y;
+	g->col.z = col.z * g->col.z;
 }
 
 void reflect(ray *g, vector normal, point P) {
