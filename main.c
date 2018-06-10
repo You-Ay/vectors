@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "vector.h"
 #include "objects.h"
+#include "optics.h"
 
 // Main function: program starts here
 
@@ -9,6 +10,8 @@ int main() {
 	/*
 	 * VECTOR OPERATIONS
 	 */
+
+	printf("\nVECTOR OPERATIONS\n\n");
 
 	vector v = vector_assign(1.0, 2.0, 0.0);
 	vector w = vector_assign(-3.0, 1.0, 1.5);
@@ -69,6 +72,8 @@ int main() {
 	 * PRINTING OBJECTS TO STDOUT TESTING
 	 */
 
+	printf("\nPRINTING OBJECTS\n\n");
+
 	printf("g : %s\n", ray_print(g, 0));
 	printf("E : %s\n", plane_print_parametric(E, 0));
 	printf("E : %s\n", plane_print_normal(E, 0));
@@ -76,8 +81,10 @@ int main() {
 	printf("S : %s\n", sphere_print(S_1, 0));
 	
 	/*
-	 * CHECKING VECTORS FOR EQUALITY, PARALLELITY, ORTHOGONALITY
+	 * CHECKING VECTORS FOR EQUALITY, COLLINEARITY, ORTHOGONALITY
 	 */
+
+	printf("\nEQUALITY, COLLINEARITY, ORTHOGONALITY\n\n");
 
 	vector a = vector_assign(1, 0, 0);
 	vector b = vector_assign(0, 1, 0);
@@ -112,6 +119,8 @@ int main() {
 	 * INTERSECTION TESTING
 	 */
 
+	printf("\nINTERSECTIONS\n\n");
+
 	vector u_h = vector_assign(0, 0, 0);
 	vector v_h = vector_assign(1, 0, 0);
 	ray h = ray_assign(u_h, v_h);
@@ -123,6 +132,28 @@ int main() {
 	intersection_print_ray_ray(&I_gh, 1);
 	intersection_print_ray_plane(&I_gE, 1);
 	intersection_print_ray_sphere(&I_gS, 1);
+
+	/*
+	 * INTERACTION TESTING
+	 */
+
+	printf("\nINTERACTIONS\n\n");
+
+	point A = vector_assign(0, 0, 0);
+	vector normal = vector_assign(0, 0 ,2);
+	E = plane_assign_normal(A, normal);
+
+	u_g = vector_assign(-1, 0, 1);
+	v_g = vector_assign(1, 0, -1);
+	g = ray_assign(u_g, v_g);
+	printf("Original ray g' : %s\n", ray_print(g, 3));
+
+	intersection I = intersect_ray_plane(&g, &E);
+	intersection_print_ray_plane(&I, 3);
+
+	reflect(&g, E.normal, I.P);
+
+	printf("Reflected ray g' : %s\n", ray_print(g, 3));
 
 	return 0;
 }
