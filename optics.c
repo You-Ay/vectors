@@ -20,6 +20,78 @@ void reflect(ray *g, vector normal, point P) {
 
 }
 
+void refract(ray *g, vector normal, point P, double nrefr) {
+	/*
+	 * ATTENTION: This function should only be used for spheres
+	 */
+
+	g->origin = P;
+
+	// Snell's law in vector form, notations from
+	// en.wikipedia.org/wiki/Snell's_law
+
+	vector n = normalize(normal);
+	vector l = normalize(g->direction);
+	
+	// refractive indices n_1, n_2,
+	// one is = 1 (air / vacuum), the other is = nrefr;
+	// we assume that 'normal' points outside the glass-like object
+	
+	double n_1, n_2;
+
+	if (dot(n, l) > 0.) { // n oriented like l: the ray leaves the glass
+		n = multiply(n, -1.); // Wikipedia convention
+		n_1 = nrefr;
+		n_2 = 1.;	
+	} else { // n opposed to l: the ray enters the glass
+		n_1 = 1.;
+		n_2 = nrefr;
+	}
+
+	// reflected ray direction
+	
+	double cos_1 = - dot(n, l);
+	double r = n_1 / n_2;
+	vector v_reflect = add(l, multiply(n, 2.*cos_1));
+
+	// refracted ray direction
+	
+	double radicand = 1. - r*r  * (1. - cos_1*cos_1);
+
+	if (radicand < 0.) { // total reflection
+		g->direction = v_reflect;
+		return;
+	}
+
+	double cos_2 = sqrt(radicand);
+	vector v_refract = add(multiply(l, r), multiply(n, r * cos_1 - cos_2));
+
+	// reflectance R according to Fresnel equations, notations from
+	// en.wikipedia.org/wiki/Fresnel_equations
+	// R is the probability of the ray being reflected,
+	// T = 1 - R is the probability of it being trasmitted (reflected)
+	
+	// s-polarized light
+	double R_s = (n_1 * cos_1 - n_2 * cos_2) / (n_1 * cos_1 + n_2 * cos_2);
+	R_s *= R_s;
+
+	// p-polarized light
+	double R_p = (n_1 * cos_2 - n_2 * cos_1) / (n_1 * cos_2 + n_2 * cos_1);
+	R_p *= R_p;
+
+	// take average as actual reflectance: unpolarized light source
+	double R = (R_s + R_p) / 2.;
+
+	// decide whether to reflect or transmit:
+	// X random from 0 to 1; X <= R: reflect
+	
+	double X = ((double) rand()) / ((double) RAND_MAX);
+	if (X <= R)
+		g->direction = v_reflect;
+	else
+		g->direction = v_refract;
+}
+
 screen * screen_assign(double width, int pixels_width, int pixels_height) {
 	long N_pixels = ((long) pixels_width) * ((long) pixels_height);
 
