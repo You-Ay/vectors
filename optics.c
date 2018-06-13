@@ -20,6 +20,41 @@ void reflect(ray *g, vector normal, point P) {
 
 }
 
+void scatter(ray *g, vector normal, point P) {
+
+	vector n = normalize(normal);
+
+	if(dot(n, g->direction)) { // wrong orientation
+		n = multiply(n, -1.0);
+	}
+
+	// creates a vector "direction" perpendicular to the normal vector
+	if(n.x != 0 || n.y != 0) {
+
+		vector direction = vector_assign(-n.y, n.x, 0);
+
+	} else {
+
+		vector direction = vector_assign(0, -n.z, n.y);
+
+	}
+
+	// creates two orthonormal vectors perpendicular to the normal vector
+	vector e_1 = normalize(g->direction);
+	vector e_2 = cross(n, e_1);
+
+	double X_1 = (double)rand() / RAND_MAX; // this is sin(theta)
+	double X_2 = ((double)rand() / RAND_MAX) * M_PI; // this is pi
+
+	double sin_theta = X_1;
+	double cos_theta = sqrt(1 - sin_theta * sin_theta); // because sin^2 + cos^2 = 1
+	double phi = X_2;
+
+	g->origin = P;
+	g->direction = add(add(multiply(n , cos_theta), multiply(e_1, cos(phi) * sin_theta)), multiply(e_2, sin(phi) * sin_theta));
+
+}
+
 void refract(ray *g, vector normal, point P, double nrefr) {
 	/*
 	 * ATTENTION: This function should only be used for spheres
