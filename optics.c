@@ -1,5 +1,7 @@
 #include "optics.h"
 
+const double distance_limit = 1e6;
+
 void absorb(ray *g, color col) {
 
 	g->col.x = col.x * g->col.x;
@@ -268,4 +270,114 @@ point pixel_position(const camera *cam, const screen *scr, long pixel,
 	return pixel_center;
 }
 
-// Implementation of the functions declared in optics.h
+trace_status trace(ray *g, const collection *scene, int N_interactions,
+		int max_interactions) {
+	//printf("N_interactions = %d\n", N_interactions);
+	//printf("max_interactions = %d\n", max_interactions);
+	if (N_interactions >= max_interactions)
+		return too_many_interactions;
+
+	double r_plane_min = distance_limit;
+	double r_sphere_min = distance_limit;
+	int i_plane = -1;
+	int i_sphere = -1;
+
+	intersection I;
+
+	for (int i = 0; i < scene->N_planes; i++) {
+		I = intersect_ray_plane(g, &scene->planes[i]);
+		if (I.kind != intersecting)
+			continue;
+		if (I.r < r_plane_min && I.r > epsilon) {
+			i_plane = i;
+			r_plane_min = I.r;
+		}
+	}
+
+	for (int i = 0; i < scene->N_spheres; i++) {
+		I = intersect_ray_sphere(g, &scene->spheres[i]);
+		if (I.kind != intersecting)
+			continue;
+		if (I.r < r_sphere_min && I.r > epsilon) {
+			i_sphere = i;
+			r_sphere_min = I.r;
+		}
+		if (I.r_2 < r_sphere_min && I.r_2 > epsilon) {
+			i_sphere = i;
+			r_sphere_min = I.r;
+		}
+	}
+
+	if (i_plane == -1 && i_sphere == -1)
+		return too_far_away;
+
+	color col;
+	vector normal;
+	point P;
+	material mat;
+	bool is_light_source;
+
+	if (r_plane_min < r_sphere_min) {
+		col = scene->planes[i_plane].col;
+		normal = scene->planes[i_plane].normal;
+		P = add(g->origin, multiply(g->direction, r_plane_min));
+		mat = scene->planes[i_plane].mat;
+		is_light_source = scene->planes[i_plane].is_light_source;
+		//printf("Hit plane %d\n", i_plane+1);
+	} else {
+		col = scene->spheres[i_sphere].col;
+		P = add(g->origin, multiply(g->direction, r_sphere_min));
+		normal = subtract(P, scene->spheres[i_sphere].center);
+		mat = scene->spheres[i_sphere].mat;
+		is_light_source = scene->spheres[i_sphere].is_light_source;
+		//printf("Hit sphere %d\n", i_sphere+1);
+	}
+
+	absorb(g, col);
+	if (is_light_source)
+		return illuminated;
+
+	double X = ((double) rand()) / ((double) RAND_MAX);
+
+	if (X <= mat.x)
+		scatter(g, normal, P);
+	else if (X <= mat.x + mat.y)
+		reflect(g, normal, P);
+	else
+		refract(g, normal, P, 1.5); // hard-coded refractive index
+	
+	return valid;
+}
+
+void render(camera *cam, screen *scr, collection *scene, int max_interactions,
+		int samples) {
+
+	for (int sample = 0; sample < samples; sample++) {
+		printf("Rendering sample %d of %d.\n", sample+1, samples);
+		unsigned long N_pxls = ((long) scr->pixels_width) * ((long) scr->pixels_height);
+
+#pragma omp parallel for schedule (dynamic, 1)
+		for (long pxl = 0; pxl < N_pxls; pxl++) {
+			for (int subpxl = 0; subpxl < 4; subpxl++) {
+				point P = pixel_position(cam, scr, pxl, subpxl);
+				ray g = ray_assign_points(cam->origin, P);
+				g.col = vector_assign(1, 1, 1);
+				
+				trace_status status;
+				int N_interactions = 0;
+
+				do {
+					status = trace(&g, scene, N_interactions++, max_interactions);
+				} while(status == valid);
+
+				if (status != illuminated)
+					continue;
+
+				scr->pixel_colors[pxl] = add(scr->pixel_colors[pxl],
+						divide(g.col, (4. * ((double) samples))));
+
+			}
+		}
+	}
+}
+

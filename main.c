@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "vector.h"
 #include "objects.h"
 #include "optics.h"
@@ -8,153 +9,139 @@
 
 int main() {
 	/*
-	 * VECTOR OPERATIONS
+	 * SCENE
 	 */
 
-	printf("\nVECTOR OPERATIONS\n\n");
-
-	vector v = vector_assign(1.0, 2.0, 0.0);
-	vector w = vector_assign(-3.0, 1.0, 1.5);
-
-	printf("    v = %s\n", vector_print(v, 1));
-	printf("    w = %s\n", vector_print(w, 1));
-
-	printf("v + w = %s\n", vector_print(add(v, w), 1));
-	printf("v - w = %s\n", vector_print(subtract(v, w), 1));
-	printf("  2 v = %s\n", vector_print(multiply(v, 2), 1));
-	printf("w / 2 = %s\n", vector_print(divide(w, 2), 2));
-	printf("v . w = %f\n", dot(v, w));
-	printf("v x w = %s\n", vector_print(cross(v, w), 1));
-	printf("||v|| = %f\n", norm(v));
-	printf("v_nor = %s\n", vector_print(normalize(v), 3));
-
-	/*
-	 * GNUPLOT AND GEOGEBRA TESTING
-	 */
-	
-	// some ray
-	
-	vector u_g = vector_assign(1, 0, 0);
-	vector v_g = vector_assign(1, 1, 0);
-	ray g = ray_assign(u_g, v_g);
-	
 	// some plane 
 	
-	vector a_E = vector_assign(2, 2, 0);
-	vector u_E = vector_assign(1, 1, -1);
-	vector v_E = vector_assign(5, -1, -1);
-	plane E = plane_assign_parametric(a_E, u_E, v_E);
+	vector a_E_1 = vector_assign(0, 0, 0);
+	vector u_E_1 = vector_assign(1, 0, 0);
+	vector v_E_1 = vector_assign(0, 1, 0);
+	plane E_1 = plane_assign_parametric(a_E_1, u_E_1, v_E_1);
+	E_1.col= vector_assign(0.8,0.8,0.8);
+	E_1.mat= vector_assign(0.8,0.2,0);
+
+	vector a_E_2 = vector_assign(0, 0, 0);
+	vector u_E_2 = vector_assign(0, 1, 0);
+	vector v_E_2 = vector_assign(0, 0, 1);
+	plane E_2 = plane_assign_parametric(a_E_2, u_E_2, v_E_2);
+	E_2.col= vector_assign(0.9,0.9,0.8);
+	E_2.mat= vector_assign(0.8, 0.2,0);
+
+	vector a_E_3 = vector_assign(10, 0, 0);
+	vector u_E_3 = vector_assign(0, 1, 0);
+	vector v_E_3 = vector_assign(0, 0, 1);
+	plane E_3 = plane_assign_parametric(a_E_3, u_E_3, v_E_3);
+	E_3.col= vector_assign(0.9,0.9,0.8);
+	E_3.mat= vector_assign(0.8,0.2,0);
+
+	vector a_E_4 = vector_assign(0, 0, 6);
+	vector u_E_4 = vector_assign(1, 0, 0);
+	vector v_E_4 = vector_assign(0, 1, 0);
+	plane E_4 = plane_assign_parametric(a_E_4, u_E_4, v_E_4);
+	E_4.col= vector_assign(0.8,0.8,0.8);
+	E_4.mat= vector_assign(0.8,0.2,0);
+
+	vector a_E_5 = vector_assign(0, 10, 0);
+	vector u_E_5 = vector_assign(1, 0, 0);
+	vector v_E_5 = vector_assign(0, 1, 0);
+	plane E_5 = plane_assign_parametric(a_E_5, u_E_5, v_E_5);
+	E_5.col= vector_assign(0.9,0.9,0.8);
+	E_5.mat= vector_assign(0.8,0.2,0);
+
+	vector a_E_6 = vector_assign(0, -2, 0);
+	vector u_E_6 = vector_assign(0, 1, 0);
+	vector v_E_6 = vector_assign(0, 0, 1);
+	plane E_6 = plane_assign_parametric(a_E_6, u_E_6, v_E_6);
+	E_6.col= vector_assign(0.9,0.9,0.8);
+	E_6.mat= vector_assign(0.8,0.2,0);
+	
 
 	// some spheres
 	
-	vector c_1 = vector_assign(0, 0, 0);
-	double r_1 = 2;
+	vector c_1 = vector_assign(5, 5, 6);
+	double r_1 = 1;
 	sphere S_1 = sphere_assign(c_1, r_1);
+	S_1.col = vector_assign(10,11,11);
+	S_1.is_light_source = true;
 
-	vector c_2 = vector_assign(0, 0, 3);
-	double r_2 = 1;
+	vector c_2 = vector_assign(9, 8, 0.5);
+	double r_2 = 0.5;
 	sphere S_2 = sphere_assign(c_2, r_2);
+	S_2.col = vector_assign(0.7, 0, 0.1);
+	S_2.mat = vector_assign(0.5, 0.5, 0);
 
-	// put everything into a collection structure
+	vector c_3 = vector_assign(9, 8.2, 1);
+	double r_3 = 0.5;
+	sphere S_3 = sphere_assign(c_3, r_3);
+	S_3.col = vector_assign(0.1, 0.7, 0);	
+	S_3.mat = vector_assign(0.5, 0.5, 0);
 
-	collection *bunch = collection_assign("vvrpss", v, w, g, E, S_1, S_2);
+	vector c_4 = vector_assign(9.2, 8.2, 2);
+	double r_4 = 0.5;
+	sphere S_4 = sphere_assign(c_4, r_4);
+	S_4.col = vector_assign(0.3, 0, 0.6);
+	S_4.mat = vector_assign(0.5, 0.5, 0);
 
-	// call gnuplot and geogebra print
+	vector c_5 = vector_assign(9.2, 8, 3);
+	double r_5 = 0.5;
+	sphere S_5 = sphere_assign(c_5, r_5);
+	S_5.col = vector_assign(0.5, 0, 0.3);
+	S_5.mat = vector_assign(0.5, 0.5, 0);
 
-	print_gnuplot("gnuplot.txt", bunch, -6, 6, -6, 6, -2, 4);
-	print_geogebra("geogebra.txt", bunch);
+	vector c_6 = vector_assign(9, 7.8, 4);
+	double r_6 = 0.5;
+	sphere S_6 = sphere_assign(c_6, r_6);
+	S_6.col = vector_assign(0.3, 0.3, 0.3);
+	S_6.mat = vector_assign(0.5, 0.5, 0);
 
-	// free allocated memory
+	vector c_7 = vector_assign(4, 5, 2);
+	double r_7 = 2;
+	sphere S_7 = sphere_assign(c_7, r_7);
+	S_7.col = vector_assign(1, 1, 1);	
+	S_7.mat = vector_assign(0, 0, 1);
+
+	vector c_8 = vector_assign(2, 7.5, 1.5);
+	double r_8 = 1.5;
+	sphere S_8 = sphere_assign(c_8, r_8);
+	S_8.col = vector_assign(1, 1, 1);
+	S_8.mat = vector_assign(0, 1, 0);
+
+
+	collection *scene = collection_assign("ppppppssssssss", E_1, E_2, E_3, E_4, E_5, E_6,
+			S_1, S_2, S_3, S_4, S_5, S_6, S_7, S_8);
+
+	vector cam_origin = vector_assign(6.0, 0.0, 2.5);
+	vector cam_direction = vector_assign(-0.1, 1.0, 0.0);
+	vector cam_up = vector_assign(0.0, 0.0, 1.0);
+	double screen_distance = 1.0;
+
+	camera cam = camera_assign(cam_origin, cam_direction, cam_up, screen_distance);
+
+	double width = tan(60.0 * (M_PI / 180.0)) * 2.0;
+
+	// 800 * 600 px
+	double pixel_width = 800;
+	double pixel_height = 600;
 	
-	collection_free(bunch);
+	screen *scr = screen_assign(width, pixel_width, pixel_height);
 
 	/*
-	 * PRINTING OBJECTS TO STDOUT TESTING
+	 * RENDER AND PRINT
 	 */
 
-	printf("\nPRINTING OBJECTS\n\n");
+	int max_interactions = 6;
+	int samples = 100;
 
-	printf("g : %s\n", ray_print(g, 0));
-	printf("E : %s\n", plane_print_parametric(E, 0));
-	printf("E : %s\n", plane_print_normal(E, 0));
-	printf("E : %s\n", plane_print_cartesian(E, 0));
-	printf("S : %s\n", sphere_print(S_1, 0));
-	
-	/*
-	 * CHECKING VECTORS FOR EQUALITY, COLLINEARITY, ORTHOGONALITY
-	 */
+	srand( time(NULL) );
 
-	printf("\nEQUALITY, COLLINEARITY, ORTHOGONALITY\n\n");
+	render(&cam, scr, scene, max_interactions, samples);
 
-	vector a = vector_assign(1, 0, 0);
-	vector b = vector_assign(0, 1, 0);
-	vector c = vector_assign(0, -2, 0);
-	vector d = vector_assign(0.0, -2.0, 0.0);
+	screen_print_ppm("baum.ppm", scr);
 
-	printf("a = %s ", vector_print(a, 0));
-	printf("and b = %s ", vector_print(b, 0));
-
-	if (are_orthogonal(a, b))
-		printf("are orthogonal.\n");
-	else
-		printf("are not orthogonal.\n");
-	
-	printf("b = %s ", vector_print(b, 0));
-	printf("and c = %s ", vector_print(c, 0));
-
-	if (are_collinear(b, c))
-		printf("are collinear.\n");
-	else
-		printf("are not collinear.\n");
-	
-	printf("c = %s ", vector_print(c, 0));
-	printf("and d = %s ", vector_print(d, 0));
-
-	if (are_equal(c, d))
-		printf("are equal.\n");
-	else
-		printf("are not equal.\n");
-
-	/*
-	 * INTERSECTION TESTING
-	 */
-
-	printf("\nINTERSECTIONS\n\n");
-
-	vector u_h = vector_assign(0, 0, 0);
-	vector v_h = vector_assign(1, 0, 0);
-	ray h = ray_assign(u_h, v_h);
-
-	intersection I_gh = intersect_ray_ray(&g, &h);
-	intersection I_gE = intersect_ray_plane(&g, &E);
-	intersection I_gS = intersect_ray_sphere(&g, &S_1);
-	
-	intersection_print_ray_ray(&I_gh, 1);
-	intersection_print_ray_plane(&I_gE, 1);
-	intersection_print_ray_sphere(&I_gS, 1);
-
-	/*
-	 * INTERACTION TESTING
-	 */
-
-	printf("\nINTERACTIONS\n\n");
-
-	point A = vector_assign(0, 0, 0);
-	vector normal = vector_assign(0, 0 ,2);
-	E = plane_assign_normal(A, normal);
-
-	u_g = vector_assign(-1, 0, 1);
-	v_g = vector_assign(1, 0, -1);
-	g = ray_assign(u_g, v_g);
-	printf("Original ray g' : %s\n", ray_print(g, 3));
-
-	intersection I = intersect_ray_plane(&g, &E);
-	intersection_print_ray_plane(&I, 3);
-
-	reflect(&g, E.normal, I.P);
-
-	printf("Reflected ray g' : %s\n", ray_print(g, 3));
+	collection_free(scene);
+	screen_free(scr);
 
 	return 0;
-}
 
+}
