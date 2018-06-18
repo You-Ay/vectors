@@ -523,7 +523,7 @@ intersection intersect_ray_sphere(const ray *g, const sphere *S) {
 
 	double a = dot(g->direction, g->direction);
 	double b = 2 * dot(g->direction, d);
-	double c = dot(d, d) - S->radius;
+	double c = dot(d, d) - S->radius * S->radius;
 
 	double discrimant = b * b - 4 * a * c;
 
