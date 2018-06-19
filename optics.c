@@ -279,8 +279,10 @@ trace_status trace(ray *g, const collection *scene, int N_interactions,
 
 	double r_plane_min = distance_limit;
 	double r_sphere_min = distance_limit;
+	double r_triangle_min = distance_limit;
 	int i_plane = -1;
 	int i_sphere = -1;
+	int i_triangle = -1;
 
 	intersection I;
 
@@ -308,7 +310,19 @@ trace_status trace(ray *g, const collection *scene, int N_interactions,
 		}
 	}
 
-	if (i_plane == -1 && i_sphere == -1)
+	for (int i = 0; i < scene->N_triangles; i++) {
+		I = intersect_ray_triangle(g, &scene->triangles[i]);
+		//intersection_print_ray_plane(&I, 1);
+		if (I.kind != intersecting)
+			continue;
+		//intersection_print_ray_plane(&I, 1);
+		if (I.r < r_triangle_min && I.r > epsilon) {
+			i_triangle = i;
+			r_triangle_min = I.r;
+		}
+	}
+
+	if (i_plane == -1 && i_sphere == -1 && i_triangle == -1)
 		return too_far_away;
 
 	color col;
@@ -317,20 +331,27 @@ trace_status trace(ray *g, const collection *scene, int N_interactions,
 	material mat;
 	bool is_light_source;
 
-	if (r_plane_min < r_sphere_min) {
+	if (r_plane_min < r_sphere_min && r_plane_min < r_triangle_min) {
 		col = scene->planes[i_plane].col;
 		normal = scene->planes[i_plane].normal;
 		P = add(g->origin, multiply(g->direction, r_plane_min));
 		mat = scene->planes[i_plane].mat;
 		is_light_source = scene->planes[i_plane].is_light_source;
 		//printf("Hit plane %d\n", i_plane+1);
-	} else {
+	} else if(r_sphere_min < r_plane_min && r_sphere_min < r_triangle_min) {
 		col = scene->spheres[i_sphere].col;
 		P = add(g->origin, multiply(g->direction, r_sphere_min));
 		normal = subtract(P, scene->spheres[i_sphere].center);
 		mat = scene->spheres[i_sphere].mat;
 		is_light_source = scene->spheres[i_sphere].is_light_source;
 		//printf("Hit sphere %d\n", i_sphere+1);
+	} else {
+		col = scene->triangles[i_triangle].col;
+		normal = scene->triangles[i_triangle].normal;
+		P = add(g->origin, multiply(g->direction, r_triangle_min));
+		mat = scene->triangles[i_triangle].mat;
+		is_light_source = scene->triangles[i_triangle].is_light_source;
+		//printf("Hit triangle %d\n", i_triangle+1);
 	}
 
 	absorb(g, col);

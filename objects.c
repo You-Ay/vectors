@@ -205,7 +205,7 @@ char *sphere_print(sphere S, int places) {
 }
 
 collection * collection_alloc(int N_vectors, int N_rays, int N_planes,
-		int N_spheres) {
+		int N_spheres, int N_triangles) {
 
 	collection *bunch = malloc(sizeof(collection));
 
@@ -221,6 +221,9 @@ collection * collection_alloc(int N_vectors, int N_rays, int N_planes,
 	bunch->spheres = malloc(N_spheres * sizeof(sphere));
 	bunch->N_spheres = N_spheres;
 
+	bunch->triangles = malloc(N_triangles * sizeof(triangle));
+	bunch->N_triangles = N_triangles;
+
 	return bunch;
 }
 
@@ -229,6 +232,7 @@ void collection_free(collection *bunch) {
 	free(bunch->rays);
 	free(bunch->planes);
 	free(bunch->spheres);
+	free(bunch->triangles);
 	free(bunch);
 }
 
@@ -242,6 +246,7 @@ collection * collection_assign(char * specification, ...) {
 	int N_rays = 0;
 	int N_planes = 0;
 	int N_spheres = 0; 
+	int N_triangles = 0;
 
 	for (p = specification; *p != '\0'; p++) {
 		switch (*p) {
@@ -257,10 +262,13 @@ collection * collection_assign(char * specification, ...) {
 		case 's':
 			N_spheres++;		
 			break;
+		case 't':
+			N_triangles++;
+			break;
 		default:
 			fprintf(stderr, "Wrong specification for collection: %s\n",
 					specification);
-			fprintf(stderr, "Only use characters 'v', 'r', 'p', 's' in this ");
+			fprintf(stderr, "Only use characters 'v', 'r', 'p', 's', 't' in this ");
 			fprintf(stderr, "order and without whitespaces.\n");
 			break;
 		}
@@ -269,7 +277,7 @@ collection * collection_assign(char * specification, ...) {
 	// allocate collection structure and fill it
 	
 	collection *bunch = collection_alloc(N_vectors, N_rays, N_planes,
-			N_spheres);
+			N_spheres, N_triangles);
 
 	va_list argp;
 	va_start(argp, specification);
@@ -286,11 +294,15 @@ collection * collection_assign(char * specification, ...) {
 	for (int i = 0; i < N_spheres; i++)
 		bunch->spheres[i] = va_arg(argp, sphere);
 
+	for (int i = 0; i < N_triangles; i++)
+		bunch->triangles[i] = va_arg(argp, triangle);
+
 	va_end(argp);
 
 	return bunch;
 }
 
+//TODO: implement, if possible, the possibility to print triangles
 void print_gnuplot(char *filename, collection *bunch, double x_min,
 		double x_max, double y_min, double y_max, double z_min, double z_max) {
 
@@ -366,6 +378,7 @@ void print_gnuplot(char *filename, collection *bunch, double x_min,
 	fclose(file);
 }
 
+//TODO: implement, if possible, the possibility to print triangles
 void print_geogebra(char *filename, collection *bunch) {
 
 	FILE *file = fopen(filename, "w");
@@ -547,6 +560,37 @@ intersection intersect_ray_sphere(const ray *g, const sphere *S) {
 
 }
 
+intersection intersect_ray_triangle(const ray *g, const triangle *T) {
+
+	intersection result = intersect_ray_plane(g, T);
+
+	if(result.kind == intersecting) {
+
+		vector direction_3 = subtract(T->direction_2, T->direction_1);
+		vector origin_to_point = subtract(result.P, T->origin);
+		vector B_to_point = subtract(result.P, add(T->origin, T->direction_1));
+
+		double origin_angle = acos(dot(T->direction_1, T->direction_2) / (norm(T->direction_1) * norm(T->direction_2)));
+		double B_angle = acos(dot(multiply(T->direction_1, -1.0), direction_3) / (norm(multiply(T->direction_1, -1.0)) * norm(direction_3)));
+
+		double alpha = acos(dot(origin_to_point, T->direction_1) / (norm(origin_to_point) * norm(T->direction_1)));
+		double beta = acos(dot(origin_to_point, T->direction_2) / (norm(origin_to_point) * norm(T->direction_2)));
+
+		double gamma = acos(dot(B_to_point, multiply(T->direction_1, -1.0)) / (norm(B_to_point) * norm(multiply(T->direction_1, -1.0))));
+		double delta = acos(dot(B_to_point, direction_3) / (norm(B_to_point) * norm(direction_3)));
+
+		//printf("%f, %f, %f, %f\n", alpha, beta, gamma, delta);
+
+		if(fabs((alpha + beta) - origin_angle) > epsilon || fabs((gamma + delta) - B_angle) > epsilon) {
+			result.kind = none;
+		}
+
+	}
+
+	return result;
+
+}
+
 void intersection_print_ray_ray(const intersection *I, int places) {
 
 	switch(I->kind) {
@@ -610,6 +654,30 @@ void intersection_print_ray_sphere(const intersection *I, int places) {
 		break;
 	default:
 		fprintf(stderr, "Error: strange ray/sphere intersection\n");
+		break;
+
+	}
+
+}
+
+void intersection_print_ray_triangle(const intersection *I, int places) {
+
+	switch(I->kind) {
+
+	case intersecting:
+		printf("Intersection at %s, ray parameter r = %f\n", vector_print(I->P, places), I->r);
+		break;
+	case parallel:
+		printf("Parallel, no intersection\n");
+		break;
+	case none:
+		printf("No intersection\n");
+		break;
+	case contained:
+		printf("Contained\n");
+		break;
+	default:
+		fprintf(stderr, "Error: strange ray/triangle intersection\n");
 		break;
 
 	}

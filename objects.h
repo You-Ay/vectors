@@ -41,6 +41,10 @@ typedef struct {
 	bool is_light_source;
 } plane;
 
+// parametric form: x = origin + r direction_1 + s direction_2 with r+s<=1, r>=0 and s>=0
+// the triangle needs to be assigned parametric or by points!
+typedef plane triangle;
+
 // sphere: (x - center.x)^2 + (y - center.y)^2 + (z - center.z)^2 = radius^2
 typedef struct {
 	point center;
@@ -102,11 +106,14 @@ typedef struct {
 
 	sphere *spheres;
 	int N_spheres;
+
+	triangle *triangles;
+	int N_triangles;
 } collection;
 
 // allocate and free memory for a collection of objects
 collection * collection_alloc(int N_vectors, int N_rays, int N_planes,
-		int N_spheres);
+		int N_spheres, int N_triangles);
 void collection_free(collection *bunch);
 
 // allocate and fill a collection of objects:
@@ -156,6 +163,7 @@ typedef struct {
 intersection intersect_ray_ray(const ray *g, const ray *h);
 intersection intersect_ray_plane(const ray *g, const plane *E);
 intersection intersect_ray_sphere(const ray *g, const sphere *S);
+intersection intersect_ray_triangle(const ray *g, const triangle *T);
 
 // print the intersection details directly to screen (stdout),
 // e.g.: "Rays parallel.\n"; "Intersection at (1, 0, 4).\n";
@@ -163,6 +171,7 @@ intersection intersect_ray_sphere(const ray *g, const sphere *S);
 void intersection_print_ray_ray(const intersection *I, int places);
 void intersection_print_ray_plane(const intersection *I, int places);
 void intersection_print_ray_sphere(const intersection *I, int places);
+void intersection_print_ray_triangle(const intersection *I, int places);
 
 #endif /* OBJECTS_H */
 
