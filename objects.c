@@ -205,7 +205,7 @@ char *sphere_print(sphere S, int places) {
 }
 
 collection * collection_alloc(int N_vectors, int N_rays, int N_planes,
-		int N_spheres, int N_triangles) {
+		int N_spheres, int N_triangles, int N_parallelograms) {
 
 	collection *bunch = malloc(sizeof(collection));
 
@@ -224,6 +224,9 @@ collection * collection_alloc(int N_vectors, int N_rays, int N_planes,
 	bunch->triangles = malloc(N_triangles * sizeof(triangle));
 	bunch->N_triangles = N_triangles;
 
+	bunch->parallelograms = malloc(N_parallelograms * sizeof(parallelogram));
+	bunch->N_parallelograms = N_parallelograms;
+
 	return bunch;
 }
 
@@ -233,6 +236,7 @@ void collection_free(collection *bunch) {
 	free(bunch->planes);
 	free(bunch->spheres);
 	free(bunch->triangles);
+	free(bunch->parallelograms);
 	free(bunch);
 }
 
@@ -247,6 +251,7 @@ collection * collection_assign(char * specification, ...) {
 	int N_planes = 0;
 	int N_spheres = 0; 
 	int N_triangles = 0;
+	int N_parallelograms = 0;
 
 	for (p = specification; *p != '\0'; p++) {
 		switch (*p) {
@@ -265,10 +270,13 @@ collection * collection_assign(char * specification, ...) {
 		case 't':
 			N_triangles++;
 			break;
+		case 'a': // 'p' was already taken so I chose the second letter in "parallelograms"
+			N_parallelograms++;
+			break;
 		default:
 			fprintf(stderr, "Wrong specification for collection: %s\n",
 					specification);
-			fprintf(stderr, "Only use characters 'v', 'r', 'p', 's', 't' in this ");
+			fprintf(stderr, "Only use characters 'v', 'r', 'p', 's', 't', 'a' in this ");
 			fprintf(stderr, "order and without whitespaces.\n");
 			break;
 		}
@@ -277,7 +285,7 @@ collection * collection_assign(char * specification, ...) {
 	// allocate collection structure and fill it
 	
 	collection *bunch = collection_alloc(N_vectors, N_rays, N_planes,
-			N_spheres, N_triangles);
+			N_spheres, N_triangles, N_parallelograms);
 
 	va_list argp;
 	va_start(argp, specification);
@@ -297,12 +305,15 @@ collection * collection_assign(char * specification, ...) {
 	for (int i = 0; i < N_triangles; i++)
 		bunch->triangles[i] = va_arg(argp, triangle);
 
+	for (int i = 0; i < N_parallelograms; i++)
+		bunch->parallelograms[i] = va_arg(argp, parallelogram);
+
 	va_end(argp);
 
 	return bunch;
 }
 
-//TODO: implement, if possible, the possibility to print triangles
+//TODO: implement, if possible, the possibility to print triangles and parallelograms
 void print_gnuplot(char *filename, collection *bunch, double x_min,
 		double x_max, double y_min, double y_max, double z_min, double z_max) {
 
@@ -378,7 +389,7 @@ void print_gnuplot(char *filename, collection *bunch, double x_min,
 	fclose(file);
 }
 
-//TODO: implement, if possible, the possibility to print triangles
+//TODO: implement, if possible, the possibility to print triangles and parallelograms
 void print_geogebra(char *filename, collection *bunch) {
 
 	FILE *file = fopen(filename, "w");
@@ -566,23 +577,76 @@ intersection intersect_ray_triangle(const ray *g, const triangle *T) {
 
 	if(result.kind == intersecting) {
 
-		vector direction_3 = subtract(T->direction_2, T->direction_1);
 		vector origin_to_point = subtract(result.P, T->origin);
-		vector B_to_point = subtract(result.P, add(T->origin, T->direction_1));
 
 		double origin_angle = acos(dot(T->direction_1, T->direction_2) / (norm(T->direction_1) * norm(T->direction_2)));
-		double B_angle = acos(dot(multiply(T->direction_1, -1.0), direction_3) / (norm(multiply(T->direction_1, -1.0)) * norm(direction_3)));
 
 		double alpha = acos(dot(origin_to_point, T->direction_1) / (norm(origin_to_point) * norm(T->direction_1)));
 		double beta = acos(dot(origin_to_point, T->direction_2) / (norm(origin_to_point) * norm(T->direction_2)));
 
-		double gamma = acos(dot(B_to_point, multiply(T->direction_1, -1.0)) / (norm(B_to_point) * norm(multiply(T->direction_1, -1.0))));
-		double delta = acos(dot(B_to_point, direction_3) / (norm(B_to_point) * norm(direction_3)));
+		if(fabs((alpha + beta) - origin_angle) < epsilon) {
 
-		//printf("%f, %f, %f, %f\n", alpha, beta, gamma, delta);
+			vector B_to_point = subtract(result.P, add(T->origin, T->direction_1));
+			vector direction_3 = subtract(T->direction_2, T->direction_1);
 
-		if(fabs((alpha + beta) - origin_angle) > epsilon || fabs((gamma + delta) - B_angle) > epsilon) {
+			double B_angle = acos(dot(multiply(T->direction_1, -1.0), direction_3) / (norm(multiply(T->direction_1, -1.0)) * norm(direction_3)));
+
+			double gamma = acos(dot(B_to_point, multiply(T->direction_1, -1.0)) / (norm(B_to_point) * norm(multiply(T->direction_1, -1.0))));
+			double delta = acos(dot(B_to_point, direction_3) / (norm(B_to_point) * norm(direction_3)));
+
+			if(fabs((gamma + delta) - B_angle) > epsilon) {
+				result.kind = none;
+			}
+
+		} else {
+
 			result.kind = none;
+
+		}
+
+	}
+
+	return result;
+
+}
+
+intersection intersect_ray_parallelogram(const ray *g, const parallelogram *P) {
+
+	//printf("Calculating ray_parallelogram_intersection\n");
+
+	intersection result = intersect_ray_plane(g, P);
+
+	if(result.kind == intersecting) {
+
+		vector origin_to_point = subtract(result.P, P->origin);
+
+		double origin_angle = acos(dot(P->direction_1, P->direction_2) / (norm(P->direction_1) * norm(P->direction_2)));
+
+		double alpha = acos(dot(origin_to_point, P->direction_1) / (norm(origin_to_point) * norm(P->direction_1)));
+		double beta = acos(dot(origin_to_point, P->direction_2) / (norm(origin_to_point) * norm(P->direction_2)));
+
+		if(fabs((alpha + beta) - origin_angle) < epsilon) {
+
+			//printf("alpha + beta satisfied\n");
+
+			vector C_to_point = subtract(result.P, add(add(P->origin, P->direction_1), P->direction_2));
+
+			vector invdirection_1 = multiply(P->direction_1, -1.0);
+			vector invdirection_2 = multiply(P->direction_2, -1.0);
+
+			double C_angle = acos(dot(invdirection_1, invdirection_2) / (norm(invdirection_1) * norm(invdirection_2)));
+
+			double gamma = acos(dot(C_to_point, invdirection_1) / (norm(C_to_point) * norm(invdirection_1)));
+			double delta = acos(dot(C_to_point, invdirection_2) / (norm(C_to_point) * norm(invdirection_2)));
+
+			if(fabs((gamma + delta) - C_angle) > epsilon) {
+				result.kind = none;
+			}
+
+		} else {
+
+			result.kind = none;
+
 		}
 
 	}
@@ -678,6 +742,30 @@ void intersection_print_ray_triangle(const intersection *I, int places) {
 		break;
 	default:
 		fprintf(stderr, "Error: strange ray/triangle intersection\n");
+		break;
+
+	}
+
+}
+
+void intersection_print_ray_parallelogram(const intersection *I, int places) {
+
+	switch(I->kind) {
+
+	case intersecting:
+		printf("Intersection at %s, ray parameter r = %f\n", vector_print(I->P, places), I->r);
+		break;
+	case parallel:
+		printf("Parallel, no intersection\n");
+		break;
+	case none:
+		printf("No intersection\n");
+		break;
+	case contained:
+		printf("Contained\n");
+		break;
+	default:
+		fprintf(stderr, "Error: strange ray/parallelogram intersection\n");
 		break;
 
 	}
