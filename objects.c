@@ -384,12 +384,41 @@ void print_gnuplot(char *filename, collection *bunch, double x_min,
 		fprintf(file, "lc %d\n", color_counter++);
 	}
 
+	// plot triangles
+	
+	for (int i = 0; i < bunch->N_triangles; i++) {
+		fprintf(file, "splot [0:1][0:1] (u+v<=1) ? %f+%f*u+%f*v : 1/0, ",
+				bunch->triangles[i].origin.x, bunch->triangles[i].direction_1.x,
+				bunch->triangles[i].direction_2.x);
+		fprintf(file, "(u+v <= 1) ? %f+%f*u+%f*v : 1/0, ",
+				bunch->triangles[i].origin.y, bunch->triangles[i].direction_1.y,
+				bunch->triangles[i].direction_2.y);
+		fprintf(file, "(u+v <= 1) ? %f+%f*u+%f*v : 1/0 ",
+				bunch->triangles[i].origin.z, bunch->triangles[i].direction_1.z,
+				bunch->triangles[i].direction_2.z);
+		fprintf(file, "lc %d\n", color_counter++);
+	}
+
+	// plot parallelograms
+	
+	for (int i = 0; i < bunch->N_parallelograms; i++) {
+		fprintf(file, "splot [0:1][0:1] %f+%f*u+%f*v, ",
+				bunch->parallelograms[i].origin.x, bunch->parallelograms[i].direction_1.x,
+				bunch->parallelograms[i].direction_2.x);
+		fprintf(file, "%f+%f*u+%f*v, ",
+				bunch->parallelograms[i].origin.y, bunch->parallelograms[i].direction_1.y,
+				bunch->parallelograms[i].direction_2.y);
+		fprintf(file, "%f+%f*u+%f*v ",
+				bunch->parallelograms[i].origin.z, bunch->parallelograms[i].direction_1.z,
+				bunch->parallelograms[i].direction_2.z);
+		fprintf(file, "lc %d\n", color_counter++);
+	}
+
 	fprintf(file, "unset multiplot\n");
 
 	fclose(file);
 }
 
-//TODO: implement, if possible, the possibility to print triangles and parallelograms
 void print_geogebra(char *filename, collection *bunch) {
 
 	FILE *file = fopen(filename, "w");
@@ -401,7 +430,7 @@ void print_geogebra(char *filename, collection *bunch) {
 	fprintf(file, "Execute[{");
 
 	int N_total = bunch->N_vectors + bunch->N_rays + bunch->N_planes +
-			bunch->N_spheres;
+			bunch->N_spheres + bunch->N_triangles + bunch->N_parallelograms;
 	int counter = 0;
 
 	// plot vectors
@@ -441,6 +470,31 @@ void print_geogebra(char *filename, collection *bunch) {
 		fprintf(file, "\"Sphere((%f,%f,%f),%f)\"",
 				bunch->spheres[i].center.x, bunch->spheres[i].center.y,
 				bunch->spheres[i].center.z, bunch->spheres[i].radius);
+		if (++counter < N_total)
+			fprintf(file, ", ");
+	}
+	
+	// plot triangles
+	
+	for (int i = 0; i < bunch->N_triangles; i++) {
+		point A = bunch->triangles[i].origin;
+		point B = add(bunch->triangles[i].origin, bunch->triangles[i].direction_1);
+		point C = add(bunch->triangles[i].origin, bunch->triangles[i].direction_2);
+		fprintf(file, "\"Polygon((%f,%f,%f),(%f,%f,%f),(%f,%f,%f))\"",
+				A.x, A.y, A.z, B.x, B.y, B.z, C.x, C.y, C.z);
+		if (++counter < N_total)
+			fprintf(file, ", ");
+	}
+
+	// plot parallelograms
+	
+	for (int i = 0; i < bunch->N_parallelograms; i++) {
+		point A = bunch->parallelograms[i].origin;
+		point B = add(bunch->parallelograms[i].origin, bunch->parallelograms[i].direction_1);
+		point D = add(bunch->parallelograms[i].origin, bunch->parallelograms[i].direction_2);
+		point C = add(B, bunch->parallelograms[i].direction_2);
+		fprintf(file, "\"Polygon((%f,%f,%f),(%f,%f,%f),(%f,%f,%f),(%f,%f,%f))\"",
+				A.x, A.y, A.z, B.x, B.y, B.z, C.x, C.y, C.z, D.x, D.y, D.z);
 		if (++counter < N_total)
 			fprintf(file, ", ");
 	}
