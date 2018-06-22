@@ -135,9 +135,12 @@ int main() {
 
 	srand( time(NULL) );
 
-	render(&cam, scr, scene, max_interactions, samples);
+	// Render indefinitely and write directly to file
+	render_live("baum.ppm", &cam, scr, scene, max_interactions);
 
-	screen_print_ppm("baum.ppm", scr);
+	// Render a fixed number (10) of samples:
+	//render(&cam, scr, scene, max_interactions, 10);
+	//screen_print_ppm("baum.ppm", scr);
 
 	collection_free(scene);
 	screen_free(scr);

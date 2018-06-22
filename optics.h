@@ -139,5 +139,13 @@ trace_status trace(ray *g, const collection *scene, int N_interactions,
 void render(camera *cam, screen *scr, collection *scene, int max_interactions,
 		int samples);
 
+// render indefinitely and write every sample to file
+void render_live(char* filename, camera *cam, screen *scr, collection *scene,
+		int max_interactions);
+
+// render just one sample
+void render_sample(camera *cam, screen *scr, collection *scene, 
+		int max_interactions);
+
 #endif /* OPTICS_H */
 

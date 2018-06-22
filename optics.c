@@ -394,29 +394,70 @@ void render(camera *cam, screen *scr, collection *scene, int max_interactions,
 
 	for (int sample = 0; sample < samples; sample++) {
 		printf("Rendering sample %d of %d.\n", sample+1, samples);
-		unsigned long N_pxls = ((long) scr->pixels_width) * ((long) scr->pixels_height);
+		render_sample(cam, scr, scene, max_interactions);
+	}
+
+	// calculate average for each pixel
+
+	unsigned long N_pxls = ((long) scr->pixels_width) * ((long) scr->pixels_height);
+
+	for (long pxl = 0; pxl < N_pxls; pxl++)
+		scr->pixel_colors[pxl] = divide(scr->pixel_colors[pxl], ((double) samples));
+}
+
+void render_live(char *filename, camera *cam, screen *scr, collection *scene,
+		int max_interactions) {
+
+	unsigned long N_pxls = ((long) scr->pixels_width) * ((long) scr->pixels_height);
+
+	// screen for printing to file (stores averages)
+	screen * scr_average = screen_assign(scr->width, scr->pixels_width,
+			scr->pixels_height);
+
+	long samples = 1;
+
+	while (true) {
+		printf("Rendering sample %d > %s\n", samples, filename);
+		render_sample(cam, scr, scene, max_interactions);
+
+		for (long pxl = 0; pxl < N_pxls; pxl++)
+			scr_average->pixel_colors[pxl] = divide(scr->pixel_colors[pxl],
+					((double) samples));
+
+
+		screen_print_ppm(filename, scr_average);
+
+		samples++;
+	}
+
+	screen_free(scr_average);
+}
+
+void render_sample(camera *cam, screen *scr, collection *scene,
+		int max_interactions) {
+
+	unsigned long N_pxls = ((long) scr->pixels_width) * ((long) scr->pixels_height);
 
 #pragma omp parallel for schedule (dynamic, 1)
-		for (long pxl = 0; pxl < N_pxls; pxl++) {
-			for (int subpxl = 0; subpxl < 4; subpxl++) {
-				point P = pixel_position(cam, scr, pxl, subpxl);
-				ray g = ray_assign_points(cam->origin, P);
-				g.col = vector_assign(1, 1, 1);
+	for (long pxl = 0; pxl < N_pxls; pxl++) {
+		for (int subpxl = 0; subpxl < 4; subpxl++) {
+			point P = pixel_position(cam, scr, pxl, subpxl);
+			ray g = ray_assign_points(cam->origin, P);
+			g.col = vector_assign(1, 1, 1);
 				
-				trace_status status;
-				int N_interactions = 0;
+			trace_status status;
+			int N_interactions = 0;
 
-				do {
-					status = trace(&g, scene, N_interactions++, max_interactions);
-				} while(status == valid);
+			do {
+				status = trace(&g, scene, N_interactions++, max_interactions);
+			} while(status == valid);
 
-				if (status != illuminated)
-					continue;
+			if (status != illuminated)
+				continue;
 
-				scr->pixel_colors[pxl] = add(scr->pixel_colors[pxl],
-						divide(g.col, (4. * ((double) samples))));
+			scr->pixel_colors[pxl] = add(scr->pixel_colors[pxl],
+					divide(g.col, 4.));
 
-			}
 		}
 	}
 }
