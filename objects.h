@@ -124,9 +124,9 @@ collection * collection_alloc(int N_vectors, int N_rays, int N_planes,
 void collection_free(collection *bunch);
 
 // allocate and fill a collection of objects:
-// The speficiation may read "vvrpss" for creating to vectors, one ray,
-// one plane and two spheres; the same number of corresponding objects
-// has then to be passed.
+// The speficiation may read "vvrpssta" for creating to vectors, one ray,
+// one plane, two spheres, a triangle and a parallelogram;
+// the same number of corresponding objects has then to be passed.
 collection * collection_assign(char *specification, ...);
 
 // create a gnuplot file for printing a collection of objects
