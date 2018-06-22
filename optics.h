@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
+#include <time.h>
 #include <omp.h>
 #include "vector.h"
 #include "objects.h"

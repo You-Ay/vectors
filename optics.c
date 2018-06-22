@@ -392,9 +392,22 @@ trace_status trace(ray *g, const collection *scene, int N_interactions,
 void render(camera *cam, screen *scr, collection *scene, int max_interactions,
 		int samples) {
 
+	time_t clock_start = time(NULL);
+
 	for (int sample = 0; sample < samples; sample++) {
-		printf("Rendering sample %d of %d.\n", sample+1, samples);
 		render_sample(cam, scr, scene, max_interactions);
+
+		double time_passed = (double)(time(NULL) - clock_start);
+		double time_togo = time_passed * ((double) samples - ((double) sample+1)) /
+				((double) sample+1) + 0.5;
+		long T = (long) time_togo;
+
+		int hours = T / 3600;
+		int mins = (T - hours * 3600) / 60;
+		int secs = T - hours * 3600 - mins * 60;
+
+		printf("Rendered sample %d of %d. ", sample+1, samples);
+		printf("About %d h %d min %d sec left.\n", hours, mins, secs);
 	}
 
 	// calculate average for each pixel
