@@ -308,7 +308,7 @@ trace_status trace(ray *g, const collection *scene, int N_interactions,
 		}
 		if (I.r_2 < r_sphere_min && I.r_2 > epsilon) {
 			i_sphere = i;
-			r_sphere_min = I.r;
+			r_sphere_min = I.r_2;
 		}
 	}
 
