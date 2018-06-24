@@ -161,15 +161,30 @@ int main() {
 	 */
 
 	int max_interactions = 6;
-	int samples = 100;
-
+ 	int samples;
 	srand( time(NULL) );
 
-	// Render indefinitely and write directly to file
-	//render_live("baum.ppm", &cam, scr, scene, max_interactions);
+	int choice;
+	
+	printf("For live rendering, type 1, for given number of iterations, type 0: ");
+   	scanf("%d", &choice);
+ 
 
-	// Render a fixed number (10) of samples:
-	render(&cam, scr, scene, max_interactions, 10);
+    	if(choice == 1)
+    	{printf("Rendering process started.   ");
+	render_live("baum.ppm", &cam, scr, scene, max_interactions);
+        }
+	
+	if(choice == 0)
+	
+	{printf("How many samples? ");
+	scanf("%d", &samples);
+	printf("Rendering process started.  ");
+	
+	render(&cam, scr, scene, max_interactions, samples);
+	}
+
+
 	screen_print_ppm("baum.ppm", scr);
 
 	collection_free(scene);
