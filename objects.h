@@ -49,6 +49,21 @@ typedef plane triangle;
 // the parallelogram needs to be assigned parametric or by points!
 typedef plane parallelogram;
 
+typedef struct {
+
+	// the plane in which the circle is contained
+	plane plane;
+
+	point center;
+	double radius;
+
+	//optical properties
+	color col;
+	material mat;
+	bool is_light_source;
+
+} circle;
+
 // sphere: (x - center.x)^2 + (y - center.y)^2 + (z - center.z)^2 = radius^2
 typedef struct {
 	point center;
@@ -87,6 +102,10 @@ char * plane_print_parametric(plane E, int places);
 char * plane_print_normal(plane E, int places);
 char * plane_print_cartesian(plane E, int places);
 
+circle circle_assign(plane plane, point center, double radius);
+
+char * circle_print(circle C, int places);
+
 sphere sphere_assign(point center, double radius);
 
 // represents sphere as string, e.g. "(x - 2)^2 + (y + 1)^2 + (z - 0)^2 = 5^2",
@@ -116,11 +135,14 @@ typedef struct {
 
 	parallelogram *parallelograms;
 	int N_parallelograms;
+
+	circle *circles;
+	int N_circles;
 } collection;
 
 // allocate and free memory for a collection of objects
 collection * collection_alloc(int N_vectors, int N_rays, int N_planes,
-		int N_spheres, int N_triangles, int N_parallelograms);
+		int N_spheres, int N_triangles, int N_parallelograms, int N_circles);
 void collection_free(collection *bunch);
 
 // allocate and fill a collection of objects:
@@ -172,6 +194,7 @@ intersection intersect_ray_plane(const ray *g, const plane *E);
 intersection intersect_ray_sphere(const ray *g, const sphere *S);
 intersection intersect_ray_triangle(const ray *g, const triangle *T);
 intersection intersect_ray_parallelogram(const ray *g, const parallelogram *P);
+intersection intersect_ray_circle(const ray *g, const circle *C);
 
 // print the intersection details directly to screen (stdout),
 // e.g.: "Rays parallel.\n"; "Intersection at (1, 0, 4).\n";
@@ -179,8 +202,7 @@ intersection intersect_ray_parallelogram(const ray *g, const parallelogram *P);
 void intersection_print_ray_ray(const intersection *I, int places);
 void intersection_print_ray_plane(const intersection *I, int places);
 void intersection_print_ray_sphere(const intersection *I, int places);
-void intersection_print_ray_triangle(const intersection *I, int places);
-void intersection_print_ray_parallelogram(const intersection *I, int places);
+void intersection_print_ray_surface(const intersection *I, int places);
 
 #endif /* OBJECTS_H */
 

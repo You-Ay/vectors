@@ -181,6 +181,26 @@ char *plane_print_cartesian (plane E, int places) {
     return result;
 }
 
+circle circle_assign(plane plane, point center, double radius) {
+
+	circle result;
+
+	result.plane = plane;
+	result.center = center;
+	result.radius = radius;
+
+	if(dot(subtract(center, plane.origin), plane.normal) != 0) {
+		fprintf(stderr, "Error - The circle is not contained in the plane!");
+	}
+
+	result.is_light_source = false;
+
+	return result;
+
+}
+
+//TODO: implement "char * sphere_print(sphere S, int places);" (declared in objects.h)
+
 sphere sphere_assign(point center, double radius) {
 
 	sphere result;
@@ -205,7 +225,7 @@ char *sphere_print(sphere S, int places) {
 }
 
 collection * collection_alloc(int N_vectors, int N_rays, int N_planes,
-		int N_spheres, int N_triangles, int N_parallelograms) {
+		int N_spheres, int N_triangles, int N_parallelograms, int N_circles) {
 
 	collection *bunch = malloc(sizeof(collection));
 
@@ -227,6 +247,9 @@ collection * collection_alloc(int N_vectors, int N_rays, int N_planes,
 	bunch->parallelograms = malloc(N_parallelograms * sizeof(parallelogram));
 	bunch->N_parallelograms = N_parallelograms;
 
+	bunch->circles = malloc(N_circles * sizeof(circle));
+	bunch->N_circles = N_circles;
+
 	return bunch;
 }
 
@@ -237,6 +260,7 @@ void collection_free(collection *bunch) {
 	free(bunch->spheres);
 	free(bunch->triangles);
 	free(bunch->parallelograms);
+	free(bunch->circles);
 	free(bunch);
 }
 
@@ -252,6 +276,7 @@ collection * collection_assign(char * specification, ...) {
 	int N_spheres = 0; 
 	int N_triangles = 0;
 	int N_parallelograms = 0;
+	int N_circles = 0;
 
 	for (p = specification; *p != '\0'; p++) {
 		switch (*p) {
@@ -273,10 +298,13 @@ collection * collection_assign(char * specification, ...) {
 		case 'a': // 'p' was already taken so I chose the second letter in "parallelograms"
 			N_parallelograms++;
 			break;
+		case 'c':
+			N_circles++;
+			break;
 		default:
 			fprintf(stderr, "Wrong specification for collection: %s\n",
 					specification);
-			fprintf(stderr, "Only use characters 'v', 'r', 'p', 's', 't', 'a' in this ");
+			fprintf(stderr, "Only use characters 'v', 'r', 'p', 's', 't', 'a', 'c' in this ");
 			fprintf(stderr, "order and without whitespaces.\n");
 			break;
 		}
@@ -285,7 +313,7 @@ collection * collection_assign(char * specification, ...) {
 	// allocate collection structure and fill it
 	
 	collection *bunch = collection_alloc(N_vectors, N_rays, N_planes,
-			N_spheres, N_triangles, N_parallelograms);
+			N_spheres, N_triangles, N_parallelograms, N_circles);
 
 	va_list argp;
 	va_start(argp, specification);
@@ -308,12 +336,15 @@ collection * collection_assign(char * specification, ...) {
 	for (int i = 0; i < N_parallelograms; i++)
 		bunch->parallelograms[i] = va_arg(argp, parallelogram);
 
+	for (int i = 0; i < N_circles; i++)
+		bunch->circles[i] = va_arg(argp, circle);
+
 	va_end(argp);
 
 	return bunch;
 }
 
-//TODO: implement, if possible, the possibility to print triangles and parallelograms
+//TODO: implement, if possible, the possibility to print circles
 void print_gnuplot(char *filename, collection *bunch, double x_min,
 		double x_max, double y_min, double y_max, double z_min, double z_max) {
 
@@ -709,6 +740,22 @@ intersection intersect_ray_parallelogram(const ray *g, const parallelogram *P) {
 
 }
 
+intersection intersect_ray_circle(const ray *g, const circle *C) {
+
+	intersection result = intersect_ray_plane(g, &C->plane);
+
+	if(result.kind == intersecting) {
+
+		if(norm(subtract(result.P, C->center)) > C->radius) {
+			result.kind = none;
+		}
+
+	}
+
+	return result;
+
+}
+
 void intersection_print_ray_ray(const intersection *I, int places) {
 
 	switch(I->kind) {
@@ -778,7 +825,7 @@ void intersection_print_ray_sphere(const intersection *I, int places) {
 
 }
 
-void intersection_print_ray_triangle(const intersection *I, int places) {
+void intersection_print_ray_surface(const intersection *I, int places) {
 
 	switch(I->kind) {
 
@@ -795,31 +842,7 @@ void intersection_print_ray_triangle(const intersection *I, int places) {
 		printf("Contained\n");
 		break;
 	default:
-		fprintf(stderr, "Error: strange ray/triangle intersection\n");
-		break;
-
-	}
-
-}
-
-void intersection_print_ray_parallelogram(const intersection *I, int places) {
-
-	switch(I->kind) {
-
-	case intersecting:
-		printf("Intersection at %s, ray parameter r = %f\n", vector_print(I->P, places), I->r);
-		break;
-	case parallel:
-		printf("Parallel, no intersection\n");
-		break;
-	case none:
-		printf("No intersection\n");
-		break;
-	case contained:
-		printf("Contained\n");
-		break;
-	default:
-		fprintf(stderr, "Error: strange ray/parallelogram intersection\n");
+		fprintf(stderr, "Error: strange ray/surface intersection\n");
 		break;
 
 	}
