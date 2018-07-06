@@ -181,17 +181,12 @@ char *plane_print_cartesian (plane E, int places) {
     return result;
 }
 
-circle circle_assign(plane plane, point center, double radius) {
+surface triangle_assign(point origin, vector direction_1, vector direction_2) {
 
-	circle result;
+	surface result;
 
-	result.plane = plane;
-	result.center = center;
-	result.radius = radius;
-
-	if(dot(subtract(center, plane.origin), plane.normal) != 0) {
-		fprintf(stderr, "Error - The circle is not contained in the plane!");
-	}
+	result.type = triangle;
+	result.plane = plane_assign_parametric(origin, direction_1, direction_2);
 
 	result.is_light_source = false;
 
@@ -199,7 +194,37 @@ circle circle_assign(plane plane, point center, double radius) {
 
 }
 
-//TODO: implement "char * sphere_print(sphere S, int places);" (declared in objects.h)
+surface parallelogram_assign(point origin, vector direction_1, vector direction_2) {
+
+	surface result;
+
+	result.type = parallelogram;
+	result.plane = plane_assign_parametric(origin, direction_1, direction_2);
+
+	result.is_light_source = false;
+
+	return result;
+
+}
+
+surface disk_assign(plane plane, point center, double radius) {
+
+	if(dot(subtract(center, plane.origin), plane.normal) != 0) {
+		fprintf(stderr, "Error - The circle is not contained in the plane!");
+	}
+
+	surface result;
+
+	result.type = disk;
+	result.plane = plane;
+	result.center = center;
+	result.radius = radius;
+
+	result.is_light_source = false;
+
+	return result;
+
+}
 
 sphere sphere_assign(point center, double radius) {
 
@@ -225,7 +250,7 @@ char *sphere_print(sphere S, int places) {
 }
 
 collection * collection_alloc(int N_vectors, int N_rays, int N_planes,
-		int N_spheres, int N_triangles, int N_parallelograms, int N_circles) {
+		int N_spheres, int N_surfaces) {
 
 	collection *bunch = malloc(sizeof(collection));
 
@@ -241,14 +266,8 @@ collection * collection_alloc(int N_vectors, int N_rays, int N_planes,
 	bunch->spheres = malloc(N_spheres * sizeof(sphere));
 	bunch->N_spheres = N_spheres;
 
-	bunch->triangles = malloc(N_triangles * sizeof(triangle));
-	bunch->N_triangles = N_triangles;
-
-	bunch->parallelograms = malloc(N_parallelograms * sizeof(parallelogram));
-	bunch->N_parallelograms = N_parallelograms;
-
-	bunch->circles = malloc(N_circles * sizeof(circle));
-	bunch->N_circles = N_circles;
+	bunch->surfaces = malloc(N_surfaces * sizeof(surface));
+	bunch->N_surfaces = N_surfaces;
 
 	return bunch;
 }
@@ -258,9 +277,7 @@ void collection_free(collection *bunch) {
 	free(bunch->rays);
 	free(bunch->planes);
 	free(bunch->spheres);
-	free(bunch->triangles);
-	free(bunch->parallelograms);
-	free(bunch->circles);
+	free(bunch->surfaces);
 	free(bunch);
 }
 
@@ -274,9 +291,7 @@ collection * collection_assign(char * specification, ...) {
 	int N_rays = 0;
 	int N_planes = 0;
 	int N_spheres = 0; 
-	int N_triangles = 0;
-	int N_parallelograms = 0;
-	int N_circles = 0;
+	int N_surfaces = 0;
 
 	for (p = specification; *p != '\0'; p++) {
 		switch (*p) {
@@ -289,22 +304,16 @@ collection * collection_assign(char * specification, ...) {
 		case 'p':
 			N_planes++;		
 			break;
-		case 's':
+		case 'S': //s stands for surface and for sphere, so I decided to use a capital S for spheres
 			N_spheres++;		
 			break;
-		case 't':
-			N_triangles++;
-			break;
-		case 'a': // 'p' was already taken so I chose the second letter in "parallelograms"
-			N_parallelograms++;
-			break;
-		case 'c':
-			N_circles++;
+		case 's':
+			N_surfaces++;
 			break;
 		default:
 			fprintf(stderr, "Wrong specification for collection: %s\n",
 					specification);
-			fprintf(stderr, "Only use characters 'v', 'r', 'p', 's', 't', 'a', 'c' in this ");
+			fprintf(stderr, "Only use characters 'v', 'r', 'p', 'S', 's' in this ");
 			fprintf(stderr, "order and without whitespaces.\n");
 			break;
 		}
@@ -313,7 +322,7 @@ collection * collection_assign(char * specification, ...) {
 	// allocate collection structure and fill it
 	
 	collection *bunch = collection_alloc(N_vectors, N_rays, N_planes,
-			N_spheres, N_triangles, N_parallelograms, N_circles);
+			N_spheres, N_surfaces);
 
 	va_list argp;
 	va_start(argp, specification);
@@ -330,22 +339,19 @@ collection * collection_assign(char * specification, ...) {
 	for (int i = 0; i < N_spheres; i++)
 		bunch->spheres[i] = va_arg(argp, sphere);
 
-	for (int i = 0; i < N_triangles; i++)
-		bunch->triangles[i] = va_arg(argp, triangle);
-
-	for (int i = 0; i < N_parallelograms; i++)
-		bunch->parallelograms[i] = va_arg(argp, parallelogram);
-
-	for (int i = 0; i < N_circles; i++)
-		bunch->circles[i] = va_arg(argp, circle);
+	for (int i = 0; i < N_surfaces; i++)
+		bunch->surfaces[i] = va_arg(argp, surface);
 
 	va_end(argp);
 
 	return bunch;
 }
 
+//Suspended gnuplot and geogebrea print functions until they are modified (we don't really need them anyway)
+//TODO: modify the gnuplot and geogebra print functions to support the single surface type
 //TODO: implement, if possible, the possibility to print circles
-void print_gnuplot(char *filename, collection *bunch, double x_min,
+
+/* void print_gnuplot(char *filename, collection *bunch, double x_min,
 		double x_max, double y_min, double y_max, double z_min, double z_max) {
 
 	FILE *file = fopen(filename, "w");
@@ -533,7 +539,7 @@ void print_geogebra(char *filename, collection *bunch) {
 	fprintf(file, "}]\n");
 
 	fclose(file);
-}
+} */
 
 intersection intersect_ray_ray(const ray *g, const ray *h) {
 
@@ -656,27 +662,52 @@ intersection intersect_ray_sphere(const ray *g, const sphere *S) {
 
 }
 
-intersection intersect_ray_triangle(const ray *g, const triangle *T) {
+intersection intersect_ray_surface(const ray *g, const surface *S) {
 
-	intersection result = intersect_ray_plane(g, T);
+	intersection result;
+
+	switch(S->type) {
+
+		case triangle:
+			result = intersect_ray_triangle(g, S);
+			break;
+		case parallelogram:
+			result = intersect_ray_parallelogram(g, S);
+			break;
+		case disk:
+			result = intersect_ray_disk(g, S);
+			break;
+		default:
+			fprintf(stderr, "Error - strange surface!");
+			break;
+
+	}
+
+	return result;
+
+}
+
+intersection intersect_ray_triangle(const ray *g, const surface *T) {
+
+	intersection result = intersect_ray_plane(g, &T->plane);
 
 	if(result.kind == intersecting) {
 
-		vector origin_to_point = subtract(result.P, T->origin);
+		vector origin_to_point = subtract(result.P, T->plane.origin);
 
-		double origin_angle = acos(dot(T->direction_1, T->direction_2) / (norm(T->direction_1) * norm(T->direction_2)));
+		double origin_angle = acos(dot(T->plane.direction_1, T->plane.direction_2) / (norm(T->plane.direction_1) * norm(T->plane.direction_2)));
 
-		double alpha = acos(dot(origin_to_point, T->direction_1) / (norm(origin_to_point) * norm(T->direction_1)));
-		double beta = acos(dot(origin_to_point, T->direction_2) / (norm(origin_to_point) * norm(T->direction_2)));
+		double alpha = acos(dot(origin_to_point, T->plane.direction_1) / (norm(origin_to_point) * norm(T->plane.direction_1)));
+		double beta = acos(dot(origin_to_point, T->plane.direction_2) / (norm(origin_to_point) * norm(T->plane.direction_2)));
 
 		if(fabs((alpha + beta) - origin_angle) < epsilon) {
 
-			vector B_to_point = subtract(result.P, add(T->origin, T->direction_1));
-			vector direction_3 = subtract(T->direction_2, T->direction_1);
+			vector B_to_point = subtract(result.P, add(T->plane.origin, T->plane.direction_1));
+			vector direction_3 = subtract(T->plane.direction_2, T->plane.direction_1);
 
-			double B_angle = acos(dot(multiply(T->direction_1, -1.0), direction_3) / (norm(multiply(T->direction_1, -1.0)) * norm(direction_3)));
+			double B_angle = acos(dot(multiply(T->plane.direction_1, -1.0), direction_3) / (norm(multiply(T->plane.direction_1, -1.0)) * norm(direction_3)));
 
-			double gamma = acos(dot(B_to_point, multiply(T->direction_1, -1.0)) / (norm(B_to_point) * norm(multiply(T->direction_1, -1.0))));
+			double gamma = acos(dot(B_to_point, multiply(T->plane.direction_1, -1.0)) / (norm(B_to_point) * norm(multiply(T->plane.direction_1, -1.0))));
 			double delta = acos(dot(B_to_point, direction_3) / (norm(B_to_point) * norm(direction_3)));
 
 			if(fabs((gamma + delta) - B_angle) > epsilon) {
@@ -695,29 +726,29 @@ intersection intersect_ray_triangle(const ray *g, const triangle *T) {
 
 }
 
-intersection intersect_ray_parallelogram(const ray *g, const parallelogram *P) {
+intersection intersect_ray_parallelogram(const ray *g, const surface *P) {
 
 	//printf("Calculating ray_parallelogram_intersection\n");
 
-	intersection result = intersect_ray_plane(g, P);
+	intersection result = intersect_ray_plane(g, &P->plane);
 
 	if(result.kind == intersecting) {
 
-		vector origin_to_point = subtract(result.P, P->origin);
+		vector origin_to_point = subtract(result.P, P->plane.origin);
 
-		double origin_angle = acos(dot(P->direction_1, P->direction_2) / (norm(P->direction_1) * norm(P->direction_2)));
+		double origin_angle = acos(dot(P->plane.direction_1, P->plane.direction_2) / (norm(P->plane.direction_1) * norm(P->plane.direction_2)));
 
-		double alpha = acos(dot(origin_to_point, P->direction_1) / (norm(origin_to_point) * norm(P->direction_1)));
-		double beta = acos(dot(origin_to_point, P->direction_2) / (norm(origin_to_point) * norm(P->direction_2)));
+		double alpha = acos(dot(origin_to_point, P->plane.direction_1) / (norm(origin_to_point) * norm(P->plane.direction_1)));
+		double beta = acos(dot(origin_to_point, P->plane.direction_2) / (norm(origin_to_point) * norm(P->plane.direction_2)));
 
 		if(fabs((alpha + beta) - origin_angle) < epsilon) {
 
 			//printf("alpha + beta satisfied\n");
 
-			vector C_to_point = subtract(result.P, add(add(P->origin, P->direction_1), P->direction_2));
+			vector C_to_point = subtract(result.P, add(add(P->plane.origin, P->plane.direction_1), P->plane.direction_2));
 
-			vector invdirection_1 = multiply(P->direction_1, -1.0);
-			vector invdirection_2 = multiply(P->direction_2, -1.0);
+			vector invdirection_1 = multiply(P->plane.direction_1, -1.0);
+			vector invdirection_2 = multiply(P->plane.direction_2, -1.0);
 
 			double C_angle = acos(dot(invdirection_1, invdirection_2) / (norm(invdirection_1) * norm(invdirection_2)));
 
@@ -740,13 +771,13 @@ intersection intersect_ray_parallelogram(const ray *g, const parallelogram *P) {
 
 }
 
-intersection intersect_ray_circle(const ray *g, const circle *C) {
+intersection intersect_ray_disk(const ray *g, const surface *D) {
 
-	intersection result = intersect_ray_plane(g, &C->plane);
+	intersection result = intersect_ray_plane(g, &D->plane);
 
 	if(result.kind == intersecting) {
 
-		if(norm(subtract(result.P, C->center)) > C->radius) {
+		if(norm(subtract(result.P, D->center)) > D->radius) {
 			result.kind = none;
 		}
 

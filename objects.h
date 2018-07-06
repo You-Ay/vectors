@@ -41,28 +41,35 @@ typedef struct {
 	bool is_light_source;
 } plane;
 
-// parametric form: x = origin + r direction_1 + s direction_2 with r+s<=1, r>=0 and s>=0
-// the triangle needs to be assigned parametric or by points!
-typedef plane triangle;
+typedef enum {
 
-// parametric form: x = origin + r direction_1 + s direction_2 with r+s<=2, r>=0 and s>=0
-// the parallelogram needs to be assigned parametric or by points!
-typedef plane parallelogram;
+	triangle,
+	parallelogram,
+	disk,
+	ring,
+	partial_disk,
+	partial_ring,
+
+} surface_type;
 
 typedef struct {
 
-	// the plane in which the circle is contained
+	surface_type type;
+
 	plane plane;
 
+	//in case of disks and associated surface types
 	point center;
 	double radius;
+	double inner_radius; //for rings
+	double angle; //for partial disks and rings
 
 	//optical properties
 	color col;
 	material mat;
 	bool is_light_source;
 
-} circle;
+} surface;
 
 // sphere: (x - center.x)^2 + (y - center.y)^2 + (z - center.z)^2 = radius^2
 typedef struct {
@@ -102,9 +109,19 @@ char * plane_print_parametric(plane E, int places);
 char * plane_print_normal(plane E, int places);
 char * plane_print_cartesian(plane E, int places);
 
-circle circle_assign(plane plane, point center, double radius);
+//TODO: Implement partial disks, rings and partial rings
 
-char * circle_print(circle C, int places);
+// parametric form: x = origin + r direction_1 + s direction_2 with r+s<=1, r>=0 and s>=0
+surface triangle_assign(point origin, vector direction_1, vector direction_2);
+
+// parametric form: x = origin + r direction_1 + s direction_2 with r+s<=2, r>=0 and s>=0
+surface parallelogram_assign(point origin, vector direction_1, vector direction_2);
+
+surface disk_assign(plane plane, point center, double radius);
+
+char * triangle_print(surface S, int places);
+char * parallelogram_print(surface S, int places);
+char * disk_print(surface S, int places);
 
 sphere sphere_assign(point center, double radius);
 
@@ -130,19 +147,14 @@ typedef struct {
 	sphere *spheres;
 	int N_spheres;
 
-	triangle *triangles;
-	int N_triangles;
+	surface *surfaces;
+	int N_surfaces;
 
-	parallelogram *parallelograms;
-	int N_parallelograms;
-
-	circle *circles;
-	int N_circles;
 } collection;
 
 // allocate and free memory for a collection of objects
 collection * collection_alloc(int N_vectors, int N_rays, int N_planes,
-		int N_spheres, int N_triangles, int N_parallelograms, int N_circles);
+		int N_spheres, int N_surfaces);
 void collection_free(collection *bunch);
 
 // allocate and fill a collection of objects:
@@ -192,9 +204,12 @@ typedef struct {
 intersection intersect_ray_ray(const ray *g, const ray *h);
 intersection intersect_ray_plane(const ray *g, const plane *E);
 intersection intersect_ray_sphere(const ray *g, const sphere *S);
-intersection intersect_ray_triangle(const ray *g, const triangle *T);
-intersection intersect_ray_parallelogram(const ray *g, const parallelogram *P);
-intersection intersect_ray_circle(const ray *g, const circle *C);
+
+intersection intersect_ray_surface(const ray *g, const surface *S); //calls the specific intersect functions
+
+intersection intersect_ray_triangle(const ray *g, const surface *T);
+intersection intersect_ray_parallelogram(const ray *g, const surface *P);
+intersection intersect_ray_disk(const ray *g, const surface *D);
 
 // print the intersection details directly to screen (stdout),
 // e.g.: "Rays parallel.\n"; "Intersection at (1, 0, 4).\n";

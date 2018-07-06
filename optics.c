@@ -279,14 +279,10 @@ trace_status trace(ray *g, const collection *scene, int N_interactions,
 
 	double r_plane_min = distance_limit;
 	double r_sphere_min = distance_limit;
-	double r_triangle_min = distance_limit;
-	double r_parallelogram_min = distance_limit;
-	double r_circle_min = distance_limit;
+	double r_surface_min = distance_limit;
 	int i_plane = -1;
 	int i_sphere = -1;
-	int i_triangle = -1;
-	int i_parallelogram = -1;
-	int i_circle = -1;
+	int i_surface = -1;
 
 	intersection I;
 
@@ -314,39 +310,17 @@ trace_status trace(ray *g, const collection *scene, int N_interactions,
 		}
 	}
 
-	for (int i = 0; i < scene->N_triangles; i++) {
-		I = intersect_ray_triangle(g, &scene->triangles[i]);
-		//intersection_print_ray_plane(&I, 1);
+	for (int i = 0; i < scene->N_surfaces; i++) {
+		I = intersect_ray_surface(g, &scene->surfaces[i]);
 		if (I.kind != intersecting)
 			continue;
-		//intersection_print_ray_plane(&I, 1);
-		if (I.r < r_triangle_min && I.r > epsilon) {
-			i_triangle = i;
-			r_triangle_min = I.r;
+		if (I.r < r_surface_min && I.r > epsilon) {
+			i_surface = i;
+			r_surface_min = I.r;
 		}
 	}
 
-	for(int i = 0; i < scene->N_parallelograms; i++) {
-		I = intersect_ray_parallelogram(g, &scene->parallelograms[i]);
-		if (I.kind != intersecting)
-			continue;
-		if (I.r < r_parallelogram_min && I.r > epsilon) {
-			i_parallelogram = i;
-			r_parallelogram_min = I.r;
-		}
-	}
-
-	for(int i = 0; i < scene->N_circles; i++) {
-		I = intersect_ray_circle(g, &scene->circles[i]);
-		if (I.kind != intersecting)
-			continue;
-		if (I.r < r_circle_min && I.r > epsilon) {
-			i_circle = i;
-			r_circle_min = I.r;
-		}
-	}
-
-	if (i_plane == -1 && i_sphere == -1 && i_triangle == -1 && i_parallelogram == -1 && i_circle == -1)
+	if (i_plane == -1 && i_sphere == -1 && i_surface == -1)
 		return too_far_away;
 
 	color col;
@@ -355,40 +329,26 @@ trace_status trace(ray *g, const collection *scene, int N_interactions,
 	material mat;
 	bool is_light_source;
 
-	if (r_plane_min < r_sphere_min && r_plane_min < r_triangle_min && r_plane_min < r_parallelogram_min && r_plane_min < r_circle_min) {
+	if (r_plane_min < r_sphere_min && r_plane_min < r_surface_min) {
 		col = scene->planes[i_plane].col;
 		normal = scene->planes[i_plane].normal;
 		P = add(g->origin, multiply(g->direction, r_plane_min));
 		mat = scene->planes[i_plane].mat;
 		is_light_source = scene->planes[i_plane].is_light_source;
 		//printf("Hit plane %d\n", i_plane+1);
-	} else if(r_sphere_min < r_triangle_min && r_sphere_min < r_parallelogram_min && r_sphere_min < r_circle_min) {
+	} else if(r_sphere_min < r_surface_min) {
 		col = scene->spheres[i_sphere].col;
 		P = add(g->origin, multiply(g->direction, r_sphere_min));
 		normal = subtract(P, scene->spheres[i_sphere].center);
 		mat = scene->spheres[i_sphere].mat;
 		is_light_source = scene->spheres[i_sphere].is_light_source;
 		//printf("Hit sphere %d\n", i_sphere+1);
-	} else if(r_triangle_min < r_parallelogram_min && r_triangle_min < r_circle_min) {
-		col = scene->triangles[i_triangle].col;
-		normal = scene->triangles[i_triangle].normal;
-		P = add(g->origin, multiply(g->direction, r_triangle_min));
-		mat = scene->triangles[i_triangle].mat;
-		is_light_source = scene->triangles[i_triangle].is_light_source;
-		//printf("Hit triangle %d\n", i_triangle+1);
-	} else if (r_parallelogram_min < r_circle_min) {
-		col = scene->parallelograms[i_parallelogram].col;
-		normal = scene->parallelograms[i_parallelogram].normal;
-		P = add(g->origin, multiply(g->direction, r_parallelogram_min));
-		mat = scene->parallelograms[i_parallelogram].mat;
-		is_light_source = scene->parallelograms[i_parallelogram].is_light_source;
-		//printf("Hit parallelogram %d\n", i_parallelogram+1);
 	} else {
-		col = scene->circles[i_circle].col;
-		normal = scene->circles[i_circle].plane.normal;
-		P = add(g->origin, multiply(g->direction, r_circle_min));
-		mat = scene->circles[i_circle].mat;
-		is_light_source = scene->circles[i_circle].is_light_source;
+		col = scene->surfaces[i_surface].col;
+		normal = scene->surfaces[i_surface].plane.normal;
+		P = add(g->origin, multiply(g->direction, r_surface_min));
+		mat = scene->surfaces[i_surface].mat;
+		is_light_source = scene->surfaces[i_surface].is_light_source;
 	}
 
 	absorb(g, col);
