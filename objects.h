@@ -62,6 +62,7 @@ typedef struct {
 	point center;
 	double radius;
 	double inner_radius; //for rings
+	point middle; //for partial disks and rings
 	double angle; //for partial disks and rings
 
 	//optical properties
@@ -119,6 +120,12 @@ surface parallelogram_assign(point origin, vector direction_1, vector direction_
 
 surface disk_assign(plane plane, point center, double radius);
 
+surface partial_disk_assign(plane plane, point center, double radius, point middle, double angle);
+
+surface ring_assign(plane plane, point center, double radius, double inner_radius);
+
+surface partial_ring_assign(plane plane, point center, double radius, double inner_radius, point middle, double angle);
+
 char * triangle_print(surface S, int places);
 char * parallelogram_print(surface S, int places);
 char * disk_print(surface S, int places);
@@ -164,7 +171,7 @@ void collection_free(collection *bunch);
 collection * collection_assign(char *specification, ...);
 
 // create a gnuplot file for printing a collection of objects
-// in gnuplot, type: load 'filename' 
+// in gnuplot, type: load 'filename'
 void print_gnuplot(char *filename, collection *bunch, double x_min,
 		double x_max, double y_min, double y_max, double z_min, double z_max);
 
@@ -210,6 +217,9 @@ intersection intersect_ray_surface(const ray *g, const surface *S); //calls the 
 intersection intersect_ray_triangle(const ray *g, const surface *T);
 intersection intersect_ray_parallelogram(const ray *g, const surface *P);
 intersection intersect_ray_disk(const ray *g, const surface *D);
+intersection intersect_ray_partial_disk(const ray *g, const surface *D);
+intersection intersect_ray_ring(const ray *g, const surface *D);
+intersection intersect_ray_partial_ring(const ray *g, const surface *D);
 
 // print the intersection details directly to screen (stdout),
 // e.g.: "Rays parallel.\n"; "Intersection at (1, 0, 4).\n";
@@ -220,4 +230,3 @@ void intersection_print_ray_sphere(const intersection *I, int places);
 void intersection_print_ray_surface(const intersection *I, int places);
 
 #endif /* OBJECTS_H */
-

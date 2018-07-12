@@ -159,7 +159,7 @@ char *plane_print_parametric (plane E, int places) {
     places, E.origin.x, places, E.origin.y, places, E.origin.z,
     places, E.direction_1.x, places, E.direction_1.y, places, E.direction_1.z,
     places, E.direction_2.x, places, E.direction_2.y, places, E.direction_2.z);
-   
+
     return result;
 }
 
@@ -169,7 +169,7 @@ char *plane_print_normal (plane E, int places) {
     sprintf(result, "[x - (%0.*f, %0.*f, %0.*f)] . (%0.*f, %0.*f, %0.*f) = 0",
     places, E.origin.x, places, E.origin.y, places, E.origin.z,
     places, E.normal.x, places, E.normal.y, places, E.normal.z);
-   
+
     return result;
 }
 
@@ -224,6 +224,67 @@ surface disk_assign(plane plane, point center, double radius) {
 
 	return result;
 
+}
+
+surface partial_disk_assign(plane plane, point center, double radius, point middle, double angle){
+	if((dot(subtract(center, plane.origin), plane.normal) != 0)
+	|| (dot(subtract(middle, plane.origin), plane.normal) != 0)){
+		fprintf(stderr, "Error - The partial circle is not contained in the plane.");
+	}
+
+	surface result;
+
+	result.type = partial_disk;
+	result.plane = plane;
+	result.center = center;
+	result.radius = radius;
+	result.middle = middle;
+	result.angle = angle;
+
+	result.is_light_source = false;
+
+	return result;
+}
+
+
+surface ring_assign(plane plane, point center, double radius, double inner_radius){
+	if(dot(subtract(center, plane.origin), plane.normal) != 0){
+		fprintf(stderr, "Error - The ring is not contained in the plane.");
+	}
+
+	surface result;
+
+	result.type = ring;
+	result.plane = plane;
+	result.center = center;
+	result.radius = radius;
+	result.inner_radius = inner_radius;
+
+	result.is_light_source = false;
+
+	return result;
+}
+
+surface partial_ring_assign(plane plane, point center, double radius, double inner_radius, point middle, double angle) {
+	if((dot(subtract(center, plane.origin), plane.normal) != 0)
+	|| (dot(subtract(middle, plane.origin), plane.normal) != 0)){
+		fprintf(stderr, "Error - The partial ring is not contained in the plane.");
+	}
+
+	surface result;
+
+	result.type = partial_ring;
+	result.plane = plane;
+	result.center = center;
+	result.radius = radius;
+	result.inner_radius = inner_radius;
+	result.middle = middle;
+	result.angle = angle;
+
+
+	result.is_light_source = false;
+
+	return result;
 }
 
 sphere sphere_assign(point center, double radius) {
@@ -284,28 +345,28 @@ void collection_free(collection *bunch) {
 collection * collection_assign(char * specification, ...) {
 
 	// go through specification character by character and remember numbers
-	
+
 	const char *p;
 
 	int N_vectors = 0;
 	int N_rays = 0;
 	int N_planes = 0;
-	int N_spheres = 0; 
+	int N_spheres = 0;
 	int N_surfaces = 0;
 
 	for (p = specification; *p != '\0'; p++) {
 		switch (*p) {
 		case 'v':
-			N_vectors++;		
+			N_vectors++;
 			break;
 		case 'r':
-			N_rays++;		
+			N_rays++;
 			break;
 		case 'p':
-			N_planes++;		
+			N_planes++;
 			break;
-		case 'S': //s stands for surface and for sphere, so I decided to use a capital S for spheres
-			N_spheres++;		
+		case 'S': //s fstands for surface and for sphere, so I decided to use a capital S for spheres
+			N_spheres++;
 			break;
 		case 's':
 			N_surfaces++;
@@ -320,7 +381,7 @@ collection * collection_assign(char * specification, ...) {
 	}
 
 	// allocate collection structure and fill it
-	
+
 	collection *bunch = collection_alloc(N_vectors, N_rays, N_planes,
 			N_spheres, N_surfaces);
 
@@ -360,8 +421,8 @@ collection * collection_assign(char * specification, ...) {
 		return;
 	}
 
-	// gnuplot settings 
-	
+	// gnuplot settings
+
 	fprintf(file, "set nokey\n");
 	fprintf(file, "set parametric\n");
 	fprintf(file, "set hidden3d\n");
@@ -375,7 +436,7 @@ collection * collection_assign(char * specification, ...) {
 	int color_counter = 1;
 
 	// plot position vectors
-	
+
 	for (int i = 0; i < bunch->N_vectors; i++) {
 		fprintf(file, "set arrow %d from 0, 0, 0 to %f, %f, %f\n",
 				i+1, bunch->vectors[i].x, bunch->vectors[i].y,
@@ -383,7 +444,7 @@ collection * collection_assign(char * specification, ...) {
 	}
 
 	// plot rays
-	
+
 	for (int i = 0; i < bunch->N_rays; i++) {
 		fprintf(file, "splot %f+%f*u, ",
 				bunch->rays[i].origin.x, bunch->rays[i].direction.x);
@@ -395,7 +456,7 @@ collection * collection_assign(char * specification, ...) {
 	}
 
 	// plot planes
-	
+
 	for (int i = 0; i < bunch->N_planes; i++) {
 		fprintf(file, "splot %f+%f*u+%f*v, ",
 				bunch->planes[i].origin.x, bunch->planes[i].direction_1.x,
@@ -422,7 +483,7 @@ collection * collection_assign(char * specification, ...) {
 	}
 
 	// plot triangles
-	
+
 	for (int i = 0; i < bunch->N_triangles; i++) {
 		fprintf(file, "splot [0:1][0:1] (u+v<=1) ? %f+%f*u+%f*v : 1/0, ",
 				bunch->triangles[i].origin.x, bunch->triangles[i].direction_1.x,
@@ -437,7 +498,7 @@ collection * collection_assign(char * specification, ...) {
 	}
 
 	// plot parallelograms
-	
+
 	for (int i = 0; i < bunch->N_parallelograms; i++) {
 		fprintf(file, "splot [0:1][0:1] %f+%f*u+%f*v, ",
 				bunch->parallelograms[i].origin.x, bunch->parallelograms[i].direction_1.x,
@@ -471,7 +532,7 @@ void print_geogebra(char *filename, collection *bunch) {
 	int counter = 0;
 
 	// plot vectors
-	
+
 	for (int i = 0; i < bunch->N_vectors; i++) {
 		fprintf(file, "\"Vector((0,0,0),(%f,%f,%f))\"",
 				bunch->vectors[i].x, bunch->vectors[i].y, bunch->vectors[i].z);
@@ -480,7 +541,7 @@ void print_geogebra(char *filename, collection *bunch) {
 	}
 
 	// plot rays
-	
+
 	for (int i = 0; i < bunch->N_rays; i++) {
 		fprintf(file, "\"Line((%f,%f,%f),Vector((0,0,0),(%f,%f,%f)))\"",
 				bunch->rays[i].origin.x, bunch->rays[i].origin.y,
@@ -489,9 +550,9 @@ void print_geogebra(char *filename, collection *bunch) {
 		if (++counter < N_total)
 			fprintf(file, ", ");
 	}
-	
+
 	// plot planes
-	
+
 	for (int i = 0; i < bunch->N_planes; i++) {
 		fprintf(file, "\"PerpendicularPlane((%f,%f,%f),Vector((0,0,0),(%f,%f,%f)))\"",
 				bunch->planes[i].origin.x, bunch->planes[i].origin.y,
@@ -502,7 +563,7 @@ void print_geogebra(char *filename, collection *bunch) {
 	}
 
 	// plot spheres
-	
+
 	for (int i = 0; i < bunch->N_spheres; i++) {
 		fprintf(file, "\"Sphere((%f,%f,%f),%f)\"",
 				bunch->spheres[i].center.x, bunch->spheres[i].center.y,
@@ -510,9 +571,9 @@ void print_geogebra(char *filename, collection *bunch) {
 		if (++counter < N_total)
 			fprintf(file, ", ");
 	}
-	
+
 	// plot triangles
-	
+
 	for (int i = 0; i < bunch->N_triangles; i++) {
 		point A = bunch->triangles[i].origin;
 		point B = add(bunch->triangles[i].origin, bunch->triangles[i].direction_1);
@@ -524,7 +585,7 @@ void print_geogebra(char *filename, collection *bunch) {
 	}
 
 	// plot parallelograms
-	
+
 	for (int i = 0; i < bunch->N_parallelograms; i++) {
 		point A = bunch->parallelograms[i].origin;
 		point B = add(bunch->parallelograms[i].origin, bunch->parallelograms[i].direction_1);
@@ -573,7 +634,7 @@ intersection intersect_ray_ray(const ray *g, const ray *h) {
 
 		// the intersection between the ray g and the plane hplane derived from the ray h
 		point planeintersection = add(g->origin, multiply(g->direction, r));
-			
+
 		// check if intersection lies on the ray h, i.e.
 		// if the difference between it and h's origin is parallel to h's direction
 		vector diff = connect(h->origin, planeintersection);
@@ -677,9 +738,17 @@ intersection intersect_ray_surface(const ray *g, const surface *S) {
 		case disk:
 			result = intersect_ray_disk(g, S);
 			break;
-		default:
-			fprintf(stderr, "Error - strange surface!");
+		case partial_disk:
+			result = intersect_ray_partial_disk(g, S);
 			break;
+		case ring:
+			result = intersect_ray_ring(g, S);
+			break;
+		case partial_ring:
+			result = intersect_ray_partial_ring(g, S);
+			break;
+		default:
+				fprintf(stderr, "Error - strange surface!");
 
 	}
 
@@ -787,6 +856,68 @@ intersection intersect_ray_disk(const ray *g, const surface *D) {
 
 }
 
+intersection intersect_ray_partial_disk(const ray *g, const surface *D) {
+
+	intersection result = intersect_ray_plane(g, &D->plane);
+
+	if(result.kind == intersecting) {
+
+		double cosinus_angle = dot(normalize(subtract(result.P, D->center)),
+		 normalize(subtract(D->middle,D->center)));
+
+		if(D->angle > M_PI/2){
+			if((norm(subtract(result.P, D->center )) > D->radius)|| cosinus_angle < cos(D->angle))
+				result.kind = none;
+			}
+		if(D->angle <= M_PI/2){
+			if((norm(subtract(result.P, D->center )) > D->radius) || cosinus_angle < 0
+			|| cosinus_angle < cos(D->angle))
+				result.kind = none;
+			}
+		}
+		return result;
+	}
+
+	intersection intersect_ray_ring(const ray*g, const surface *D) {
+
+		intersection result = intersect_ray_plane(g,&D->plane);
+
+		if(result.kind == intersecting) {
+
+			if((norm(subtract(result.P, D->center)) > D->radius)
+			|| (norm(subtract(result.P, D->center)) < D->inner_radius)) {
+				result.kind = none;
+			}
+		}
+		return result;
+	}
+
+	intersection intersect_ray_partial_ring(const ray*g, const surface *D) {
+
+		intersection result = intersect_ray_plane(g,&D->plane);
+
+		if(result.kind == intersecting) {
+
+			double cosinus_angle = dot(normalize(subtract(result.P, D->center)),
+			 normalize(subtract(D->middle,D->center)));
+
+			if(D->angle > M_PI/2){
+				if((norm(subtract(result.P, D->center )) > D->radius)
+				|| (norm(subtract(result.P, D->center)) < D->inner_radius)
+				|| cosinus_angle < cos(D->angle))
+					result.kind = none;
+				}
+			if(D->angle <= M_PI/2){
+				if((norm(subtract(result.P, D->center )) > D->radius)
+				|| (norm(subtract(result.P, D->center)) < D->inner_radius)
+				|| cosinus_angle < 0 || cosinus_angle < cos(D->angle))
+					result.kind = none;
+				}
+			}
+			return result;
+		}
+
+
 void intersection_print_ray_ray(const intersection *I, int places) {
 
 	switch(I->kind) {
@@ -881,4 +1012,3 @@ void intersection_print_ray_surface(const intersection *I, int places) {
 }
 
 // Implementation of the functions declared in the header objects.h
-

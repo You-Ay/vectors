@@ -12,8 +12,8 @@ int main() {
 	 * SCENE
 	 */
 
-	// some plane 
-	
+	// some plane
+	//
 	vector a_E_1 = vector_assign(0, 0, 0);
 	vector u_E_1 = vector_assign(1, 0, 0);
 	vector v_E_1 = vector_assign(0, 1, 0);
@@ -62,10 +62,10 @@ int main() {
 	plane E_7 = plane_assign_parametric(a_E_7, u_E_7, v_E_7);
 	E_7.col = vector_assign(1,1,1);
 	E_7.mat = vector_assign(0.1,0.9,0);
-	
+
 
 	// some spheres
-	
+
 	vector c_1 = vector_assign(10, 6, 4);
 	double r_1 = 0.5;
 	sphere S_1 = sphere_assign(c_1, r_1);
@@ -81,7 +81,7 @@ int main() {
 	vector c_3 = vector_assign(5, 5.2, 1.2);
 	double r_3 = 0.5;
 	sphere S_3 = sphere_assign(c_3, r_3);
-	S_3.col = vector_assign(0.1, 0.7, 0);	
+	S_3.col = vector_assign(0.1, 0.7, 0);
 	S_3.mat = vector_assign(0.5, 0.5, 0);
 
 	vector c_4 = vector_assign(5.2, 5.2, 1.9);
@@ -105,7 +105,7 @@ int main() {
 	vector c_7 = vector_assign(6, 7, 2);
 	double r_7 = 2;
 	sphere S_7 = sphere_assign(c_7, r_7);
-	S_7.col = vector_assign(0, .6, .6);	
+	S_7.col = vector_assign(0, .6, .6);
 	S_7.mat = vector_assign(0.5, 0.5, 0);
 
 	vector c_8 = vector_assign(2, 7.5, 1.5);
@@ -125,21 +125,22 @@ int main() {
 	sphere S_10 = sphere_assign(c_10, r_10);
 	S_10.col = vector_assign(10,11,11);
 	S_10.is_light_source = true;
-
+	//
 	vector c_11 = vector_assign(0, 7, 4);
 	double r_11 = 0.5;
 	sphere S_11 = sphere_assign(c_11, r_11);
 	S_11.col = vector_assign(10,11,11);
 	S_11.is_light_source = true;
-
+	//
 	vector c_12 = vector_assign(6, 5, 0);
 	double r_12 = 0.5;
 	sphere S_12 = sphere_assign(c_12, r_12);
 	S_12.col = vector_assign(13,10,8);
 	S_12.is_light_source = true;
 
-	collection *scene = collection_assign("pppppppssssssssssss", E_1, E_2, E_3, E_4, E_5, E_6, E_7, S_1,
-			S_2, S_3, S_4, S_5, S_6, S_8, S_9, S_10, S_11, S_12);
+
+	collection *scene = collection_assign("pppppppSSSSSSSSSSSS", E_1, E_2, E_3, E_4, E_5, E_6, E_7, S_1, S_2, S_3,
+	S_4, S_5, S_6, S_7, S_8, S_9, S_10, S_11, S_12);
 
 
 	vector cam_origin = vector_assign(6.0, 0.0, 2.5);
@@ -153,7 +154,7 @@ int main() {
 
 	double pixel_width = 1280;
 	double pixel_height = 1024;
-	
+
 	screen *scr = screen_assign(width, pixel_width, pixel_height);
 
 	/*
@@ -165,22 +166,22 @@ int main() {
 	srand( time(NULL) );
 
 	int choice;
-	
+
 	printf("For live rendering, type 1, for given number of iterations, type 0: ");
    	scanf("%d", &choice);
- 
+
 
     	if(choice == 1)
     	{printf("Rendering process started.   ");
 	render_live("baum.ppm", &cam, scr, scene, max_interactions);
         }
-	
+
 	if(choice == 0)
-	
+
 	{printf("How many samples? ");
 	scanf("%d", &samples);
 	printf("Rendering process started.  ");
-	
+
 	render(&cam, scr, scene, max_interactions, samples);
 	}
 
