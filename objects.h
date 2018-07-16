@@ -62,7 +62,7 @@ typedef struct {
 	point center;
 	double radius;
 	double inner_radius; //for rings
-	point middle; //for partial disks and rings
+	vector orientation; //for partial disks and rings
 	double angle; //for partial disks and rings
 
 	//optical properties

@@ -73,7 +73,7 @@ plane plane_assign_normal(point origin, vector normal) {
 
 	} else {
 
-		fprintf(stderr, "Error - unable to assign plane with normal zero vector!");
+		fprintf(stderr, "Error - unable to assign plane with normal zero vector!\n");
 
 	}
 
@@ -107,7 +107,7 @@ plane plane_assign_cartesian(double a, double b, double c, double d) {
 	else if (result.c != 0)
 		result.origin = vector_assign(0, 0, d/c);
 	else
-		fprintf(stderr, "Error - unable to assign plane with normal zero vector!");
+		fprintf(stderr, "Error - unable to assign plane with normal zero vector!\n");
 
 	// (Probably) turns the normal vector by 90 degrees, (probably) works somehow
 	if(result.normal.x != 0 || result.normal.y != 0) {
@@ -120,7 +120,7 @@ plane plane_assign_cartesian(double a, double b, double c, double d) {
 
 	} else {
 
-		fprintf(stderr, "Error - unable to assign plane with all parameter zero !");
+		fprintf(stderr, "Error - unable to assign plane with all parameter zero !\n");
 
 	}
 
@@ -210,7 +210,7 @@ surface parallelogram_assign(point origin, vector direction_1, vector direction_
 surface disk_assign(plane plane, point center, double radius) {
 
 	if(dot(subtract(center, plane.origin), plane.normal) != 0) {
-		fprintf(stderr, "Error - The circle is not contained in the plane!");
+		fprintf(stderr, "Error - The circle is not contained in the plane!\n");
 	}
 
 	surface result;
@@ -226,10 +226,13 @@ surface disk_assign(plane plane, point center, double radius) {
 
 }
 
-surface partial_disk_assign(plane plane, point center, double radius, point middle, double angle){
-	if((dot(subtract(center, plane.origin), plane.normal) != 0)
-	|| (dot(subtract(middle, plane.origin), plane.normal) != 0)){
-		fprintf(stderr, "Error - The partial circle is not contained in the plane.");
+surface partial_disk_assign(plane plane, point center, double radius, vector orientation, double angle){
+
+	if(dot(subtract(center, plane.origin), plane.normal) != 0) {
+		fprintf(stderr, "Error - The partial circle is not contained in the plane.\n");
+	}
+	if(dot(orientation, plane.normal) != 0) {
+		fprintf(stderr, "Warning - The orientation vector is not parallel to the plane.\n");
 	}
 
 	surface result;
@@ -238,18 +241,23 @@ surface partial_disk_assign(plane plane, point center, double radius, point midd
 	result.plane = plane;
 	result.center = center;
 	result.radius = radius;
-	result.middle = middle;
+	result.orientation = orientation;
 	result.angle = angle;
 
 	result.is_light_source = false;
 
 	return result;
+
 }
 
 
 surface ring_assign(plane plane, point center, double radius, double inner_radius){
+
 	if(dot(subtract(center, plane.origin), plane.normal) != 0){
-		fprintf(stderr, "Error - The ring is not contained in the plane.");
+		fprintf(stderr, "Error - The ring is not contained in the plane.\n");
+	}
+	if(inner_radius > radius) {
+		fprintf(stderr, "Error - The inner radius must be smaller than the radius.\n");
 	}
 
 	surface result;
@@ -263,12 +271,19 @@ surface ring_assign(plane plane, point center, double radius, double inner_radiu
 	result.is_light_source = false;
 
 	return result;
+
 }
 
-surface partial_ring_assign(plane plane, point center, double radius, double inner_radius, point middle, double angle) {
-	if((dot(subtract(center, plane.origin), plane.normal) != 0)
-	|| (dot(subtract(middle, plane.origin), plane.normal) != 0)){
-		fprintf(stderr, "Error - The partial ring is not contained in the plane.");
+surface partial_ring_assign(plane plane, point center, double radius, double inner_radius, vector orientation, double angle) {
+
+	if(dot(subtract(center, plane.origin), plane.normal) != 0){
+		fprintf(stderr, "Error - The partial ring is not contained in the plane.\n");
+	}
+	if(inner_radius > radius) {
+		fprintf(stderr, "Error - The inner radius must be smaller than the radius.\n");
+	}
+	if(dot(orientation, plane.normal) != 0) {
+		fprintf(stderr, "Warning - The orientation vector is not parallel to the plane.\n");
 	}
 
 	surface result;
@@ -278,13 +293,14 @@ surface partial_ring_assign(plane plane, point center, double radius, double inn
 	result.center = center;
 	result.radius = radius;
 	result.inner_radius = inner_radius;
-	result.middle = middle;
+	result.orientation = orientation;
 	result.angle = angle;
 
 
 	result.is_light_source = false;
 
 	return result;
+
 }
 
 sphere sphere_assign(point center, double radius) {
@@ -748,7 +764,7 @@ intersection intersect_ray_surface(const ray *g, const surface *S) {
 			result = intersect_ray_partial_ring(g, S);
 			break;
 		default:
-				fprintf(stderr, "Error - strange surface!");
+			fprintf(stderr, "Error - strange surface!");
 
 	}
 
@@ -862,60 +878,53 @@ intersection intersect_ray_partial_disk(const ray *g, const surface *D) {
 
 	if(result.kind == intersecting) {
 
-		double cosinus_angle = dot(normalize(subtract(result.P, D->center)),
-		 normalize(subtract(D->middle,D->center)));
+		double angle = acos(dot(normalize(subtract(result.P, D->center)), normalize(D->orientation)));
 
-		if(D->angle > M_PI/2){
-			if((norm(subtract(result.P, D->center )) > D->radius)|| cosinus_angle < cos(D->angle))
-				result.kind = none;
-			}
-		if(D->angle <= M_PI/2){
-			if((norm(subtract(result.P, D->center )) > D->radius) || cosinus_angle < 0
-			|| cosinus_angle < cos(D->angle))
-				result.kind = none;
-			}
+		if(angle > D->angle || norm(subtract(result.P, D->center)) > D->radius) {
+			result.kind = none;
 		}
+
 		return result;
 	}
 
-	intersection intersect_ray_ring(const ray*g, const surface *D) {
+}
 
-		intersection result = intersect_ray_plane(g,&D->plane);
+intersection intersect_ray_ring(const ray*g, const surface *D) {
 
-		if(result.kind == intersecting) {
+	intersection result = intersect_ray_plane(g,&D->plane);
 
-			if((norm(subtract(result.P, D->center)) > D->radius)
-			|| (norm(subtract(result.P, D->center)) < D->inner_radius)) {
-				result.kind = none;
-			}
+	if(result.kind == intersecting) {
+
+		if(norm(subtract(result.P, D->center)) > D->radius
+		|| norm(subtract(result.P, D->center)) < D->inner_radius) {
+			result.kind = none;
 		}
-		return result;
+
 	}
 
-	intersection intersect_ray_partial_ring(const ray*g, const surface *D) {
+	return result;
 
-		intersection result = intersect_ray_plane(g,&D->plane);
+}
 
-		if(result.kind == intersecting) {
+intersection intersect_ray_partial_ring(const ray *g, const surface *D) {
 
-			double cosinus_angle = dot(normalize(subtract(result.P, D->center)),
-			 normalize(subtract(D->middle,D->center)));
+	intersection result = intersect_ray_plane(g, &D->plane);
 
-			if(D->angle > M_PI/2){
-				if((norm(subtract(result.P, D->center )) > D->radius)
-				|| (norm(subtract(result.P, D->center)) < D->inner_radius)
-				|| cosinus_angle < cos(D->angle))
-					result.kind = none;
-				}
-			if(D->angle <= M_PI/2){
-				if((norm(subtract(result.P, D->center )) > D->radius)
-				|| (norm(subtract(result.P, D->center)) < D->inner_radius)
-				|| cosinus_angle < 0 || cosinus_angle < cos(D->angle))
-					result.kind = none;
-				}
-			}
-			return result;
+	if(result.kind == intersecting) {
+
+		double angle = acos(dot(normalize(subtract(result.P, D->center)), normalize(D->orientation)));
+
+		if(angle > D->angle
+		|| norm(subtract(result.P, D->center)) > D->radius
+		|| norm(subtract(result.P, D->center)) < D->inner_radius) {
+			result.kind = none;
 		}
+
+	}
+
+	return result;
+
+}
 
 
 void intersection_print_ray_ray(const intersection *I, int places) {
